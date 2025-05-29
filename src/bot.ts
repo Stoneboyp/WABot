@@ -1,25 +1,47 @@
-import { Bot } from "grammy";
-import dotenv from "dotenv"
+import { Bot, session } from "grammy";
+import dotenv from "dotenv";
+import { MyContext, SessionData } from "./types";
 
+import { setupGreeting } from "./scenarios/greeting";
+import { setupRepairScenario, handleRepairSteps } from "./scenarios/repair";
+import {
+  setupCartridgeScenario,
+  handleCartridgeStep,
+} from "./scenarios/cartridje";
 
-dotenv.config()
+dotenv.config();
 
 const token = process.env.TG_TOKEN;
 if (!token) throw new Error("TG_TOKEN is not defined");
 
-const bot = new Bot(token);
-// Теперь вы можете зарегистрировать слушателей на объекте вашего бота `bot`.
-// grammY будет вызывать слушателей, когда пользователи будут отправлять сообщения вашему боту.
+export const bot = new Bot<MyContext>(token);
 
-// Обработайте команду /start.
-bot.command("start", (ctx) =>
-  ctx.reply("Добро пожаловать. Запущен и работает!")
+bot.use(
+  session({
+    initial: (): SessionData => ({
+      scenario: undefined,
+      step: undefined,
+      deviceType: undefined,
+      problem: undefined,
+    }),
+  })
 );
-// Обработайте другие сообщения.
-bot.on("message", (ctx) => ctx.reply("Получил другое сообщение!"));
 
-// Теперь, когда вы указали, как обрабатывать сообщения, вы можете запустить своего бота.
-// Он подключится к серверам Telegram и будет ждать сообщений.
+// Подключение сценариев
+setupGreeting(bot);
+setupRepairScenario(bot);
+setupCartridgeScenario(bot);
 
-// Запустите бота.
+// Централизованный обработчик текстов
+bot.on("message:text", async (ctx) => {
+  switch (ctx.session.scenario) {
+    case "repair":
+      await handleRepairSteps(ctx);
+      break;
+    case "cartridge":
+      await handleCartridgeStep(ctx);
+      break;
+  }
+});
+
 bot.start();
