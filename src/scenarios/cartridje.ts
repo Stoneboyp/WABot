@@ -1,4 +1,3 @@
-// scenarios/cartridge.ts
 import { Bot } from "grammy";
 import { MyContext } from "../types";
 import { resetSession } from "../utils/sessions";

@@ -1,12 +1,19 @@
 // src/types.ts
 import { Context, SessionFlavor } from "grammy";
 
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
+
 export interface SessionData {
-  scenario?: "repair" | "cartridge" | "purchase";
+  scenario?: "repair" | "cartridge" | "purchase" | "ai_chat";
   step?: string;
   deviceType?: string;
   problem?: string;
   contact?: string;
+  chatHistory?: ChatMessage[]; // Добавляем историю чата в сессию
 }
 
 export interface RepairRequest {

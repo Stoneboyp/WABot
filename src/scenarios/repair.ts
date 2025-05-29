@@ -19,6 +19,13 @@ export function setupRepairScenario(bot: Bot<MyContext>) {
 }
 
 export async function handleRepairSteps(ctx: MyContext) {
+  const text = ctx.message?.text?.toLowerCase() || "";
+
+  if (["отмена", "не хочу", "нет", "стоп"].includes(text)) {
+    await ctx.reply("Заявка отменена. Если понадобится помощь — напишите.");
+    return resetSession(ctx);
+  }
+
   switch (ctx.session.step) {
     case "type":
       ctx.session.deviceType = ctx.message?.text || "";
@@ -35,8 +42,24 @@ export async function handleRepairSteps(ctx: MyContext) {
       break;
 
     case "contact":
-      await saveRepairRequest(ctx);
-      await ctx.reply("✅ Заявка принята! Мастер свяжется в течение 30 минут.");
+      ctx.session.contact = ctx.message?.text || "";
+
+      // Подтверждение заявки
+      await ctx.reply(
+        `Проверьте данные заявки:\nТип: ${ctx.session.deviceType}\nПроблема: ${ctx.session.problem}\nКонтакт: ${ctx.session.contact}\n\nПодтвердите отправку заявки (да/нет)`
+      );
+      ctx.session.step = "confirm";
+      break;
+
+    case "confirm":
+      if (text === "да") {
+        await saveRepairRequest(ctx);
+        await ctx.reply(
+          "✅ Заявка принята! Мастер свяжется в течение 30 минут."
+        );
+      } else {
+        await ctx.reply("Заявка отменена. Если понадобится помощь — напишите.");
+      }
       resetSession(ctx);
       break;
   }

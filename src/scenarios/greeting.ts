@@ -1,4 +1,3 @@
-// scenarios/greeting.ts
 import { Bot } from "grammy";
 import { MyContext } from "../types";
 
