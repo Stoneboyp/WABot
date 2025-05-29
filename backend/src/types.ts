@@ -10,10 +10,17 @@ export interface ChatMessage {
 export interface SessionData {
   scenario?: "repair" | "cartridge" | "purchase" | "ai_chat";
   step?: string;
+
+  // Для сценария ремонта
   deviceType?: string;
   problem?: string;
   contact?: string;
-  chatHistory?: ChatMessage[]; // Добавляем историю чата в сессию
+
+  // Для сценария заправки картриджей
+  model?: string;
+
+  // История сообщений для AI-чата или общего хранения
+  chatHistory?: ChatMessage[];
 }
 
 export interface RepairRequest {
