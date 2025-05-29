@@ -1,8 +1,16 @@
 {
+  "scripts": {
+    "dev": "tsx src/bot.ts",
+    "start": "node dist/bot.js",
+    "build": "tsc"
+  },
   "devDependencies": {
+    "@types/node": "^22.15.24",
+    "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "dotenv": "^16.5.0",
     "grammy": "^1.36.3"
   }
 }

@@ -1,14 +1,19 @@
 import { Bot } from "grammy";
+import dotenv from "dotenv"
 
-const bot = new Bot("8136619748:AAF0rve9DDsR0DA4Xgn3q2S8ZDpmcbP3L6U");
 
+dotenv.config()
+
+const token = process.env.TG_TOKEN;
+if (!token) throw new Error("TG_TOKEN is not defined");
+
+const bot = new Bot(token);
 // Теперь вы можете зарегистрировать слушателей на объекте вашего бота `bot`.
 // grammY будет вызывать слушателей, когда пользователи будут отправлять сообщения вашему боту.
 
 // Обработайте команду /start.
-bot.command(
-  "start",
-  (ctx) => ctx.reply("Добро пожаловать. Запущен и работает!"),
+bot.command("start", (ctx) =>
+  ctx.reply("Добро пожаловать. Запущен и работает!")
 );
 // Обработайте другие сообщения.
 bot.on("message", (ctx) => ctx.reply("Получил другое сообщение!"));
