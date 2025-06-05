@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Box, CssBaseline, Container, Grid, Typography } from '@mui/material';
 import { ChatList } from './components/ChatList/ChatList';
-import { ChatWindow } from './components/ChatWindow/';
+import { ChatWindow } from './components/ChatWindow/ChatWindow';
 
-export const App = () => {
+const App = () => {
   const [selectedChat, setSelectedChat] = useState<number | null>(null);
 
   return (
@@ -30,3 +30,5 @@ export const App = () => {
     </>
   );
 };
+
+export default App;

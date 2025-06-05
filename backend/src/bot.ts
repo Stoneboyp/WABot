@@ -42,7 +42,6 @@ bot.on("message:text", async (ctx: MyContext) => {
   if (!ctx.message?.text) return;
   if (!ctx.chat) return;
 
-
   const message = ctx.message.text;
   const from = ctx.from;
   const firstName = from?.first_name ?? "Пользователь";
@@ -108,6 +107,3 @@ bot.on("message:text", async (ctx: MyContext) => {
     await ctx.reply("Произошла ошибка, попробуйте позже");
   }
 });
-
-// Запуск бота
-bot.start();

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { List, ListItem, ListItemText, Typography } from '@mui/material';
-import { fetchChats } from '../services/api';
+import { fetchChats } from '../../../services/api';
 
 interface Chat {
   id: number;

@@ -1,10 +1,10 @@
 {
   "scripts": {
-    "dev": "tsx src/bot.ts",
-    "start": "node dist/bot.js",
+    "start": "node dist/server.js",
     "build": "tsc"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
     "@types/node": "^22.15.24",
     "tsx": "^4.19.4",
@@ -13,6 +13,7 @@
   "dependencies": {
     "@grammyjs/storage-free": "^2.5.1",
     "@grammyjs/types": "^3.20.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "grammy": "^1.36.3",
