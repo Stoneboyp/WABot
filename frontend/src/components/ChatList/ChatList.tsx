@@ -1,44 +1,61 @@
-import { useEffect, useState } from 'react';
-import { List, ListItem, ListItemText, Typography } from '@mui/material';
-import { fetchChats } from '../../../services/api';
+// src/components/ChatList/ChatList.tsx
+import { useEffect, useState } from "react";
+import {
+  List,
+  ListItem,
+  ListItemAvatar,
+  Avatar,
+  ListItemText,
+  Typography,
+  Box,
+} from "@mui/material";
+import { fetchChats } from "../../../services/api"; // функция, получающая список чатов
 
-interface Chat {
-  id: number;
+type Chat = {
+  chatId: number;
   userName: string;
-  lastMessage?: string;
+  avatar?: string;
   updatedAt: string;
-}
+  status: "online" | "offline" | "waiting";
+};
 
-export const ChatList = ({ onSelect }: { onSelect: (id: number) => void }) => {
+export const ChatList = ({
+  onSelect,
+}: {
+  onSelect: (chatId: number) => void;
+}) => {
   const [chats, setChats] = useState<Chat[]>([]);
 
   useEffect(() => {
     const loadChats = async () => {
-      const data = await fetchChats();
+      const data = await fetchChats(); // должен вернуть массив чатов
       setChats(data);
     };
     loadChats();
-    const interval = setInterval(loadChats, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   return (
-    <List>
-      {chats.map(chat => (
-        <ListItem key={chat.id} button onClick={() => onSelect(chat.id)}>
-          <ListItemText
-            primary={chat.userName}
-            secondary={
-              <>
-                <Typography variant="body2">{chat.lastMessage}</Typography>
-                <Typography variant="caption">
-                  {new Date(chat.updatedAt).toLocaleTimeString()}
-                </Typography>
-              </>
-            }
-          />
-        </ListItem>
-      ))}
-    </List>
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Список чатов
+      </Typography>
+      <List>
+        {chats.map((chat) => (
+          <ListItem
+            key={chat.chatId}
+            button
+            onClick={() => onSelect(chat.chatId)}
+          >
+            <ListItemAvatar>
+              <Avatar src={chat.avatar} />
+            </ListItemAvatar>
+            <ListItemText
+              primary={chat.userName}
+              secondary={new Date(chat.updatedAt).toLocaleTimeString()}
+            />
+          </ListItem>
+        ))}
+      </List>
+    </Box>
   );
 };
