@@ -9,7 +9,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
-import { fetchChats } from "../../../services/api"; // функция, получающая список чатов
+import { fetchChats } from "../../../services/api";
 
 type Chat = {
   chatId: number;

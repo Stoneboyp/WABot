@@ -1,15 +1,19 @@
 // src/components/MessageInput.tsx
-import { useState } from 'react';
-import { TextField, IconButton, Box } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
+import { useState } from "react";
+import { TextField, IconButton, Box } from "@mui/material";
+import SendIcon from "@mui/icons-material/Send";
 
-export const MessageInput = ({ onSend }: { onSend: (text: string) => void }) => {
-  const [message, setMessage] = useState('');
+export const MessageInput = ({
+  onSend,
+}: {
+  onSend: (text: string) => void;
+}) => {
+  const [message, setMessage] = useState("");
 
   const handleSubmit = () => {
     if (message.trim()) {
       onSend(message);
-      setMessage('');
+      setMessage("");
     }
   };
 
@@ -19,7 +23,7 @@ export const MessageInput = ({ onSend }: { onSend: (text: string) => void }) => 
         fullWidth
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+        onKeyPress={(e) => e.key === "Enter" && handleSubmit()}
       />
       <IconButton onClick={handleSubmit}>
         <SendIcon />

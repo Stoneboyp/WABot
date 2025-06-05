@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Box, Typography, Divider, Paper } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 import { MessageInput } from "@components/MessageInput/MessageInput";
 import { fetchMessages, sendMessage } from "../../../services/api";
 
