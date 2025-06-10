@@ -10,10 +10,14 @@ export const fetchChats = async () => {
 };
 
 export const sendMessage = async (chatId: number, text: string) => {
-  await api.post(`/chats/${chatId}/send`, { text });
+  const response = await api.post(`/chats/${chatId}/send`, { text });
+  return response.data; // вот здесь возвращаем данные (например { success, reply })
 };
-
 export const fetchMessages = async (chatId: number) => {
-  const response = await api.get(`/chats/${chatId}/messages`);
+  const response = await api.get(`/chats/${chatId}`);
+  return response.data;
+};
+export const sendOperatorReply = async (chatId: number, text: string) => {
+  const response = await api.post(`/chats/${chatId}/reply`, { text });
   return response.data;
 };

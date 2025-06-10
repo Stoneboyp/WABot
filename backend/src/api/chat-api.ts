@@ -1,12 +1,14 @@
 import express from "express";
-import { bot } from "../bot";
-import { chatStore } from "../chatStore";
-import { saveMessage } from "../chatStore";
+import { Request, Response } from "express";
+import { getAIResponse } from "../services/ai-service";
+import { chatStore, saveMessage } from "../chatStore";
 import { formatMessage } from "../utils/formatMessage";
+import { bot } from "../bot";
 
+// Create the router
 const router = express.Router();
 
-// Получение списка всех чатов
+// Your existing route handlers
 router.get("/chats", (req, res) => {
   const chats = Array.from(chatStore.values()).map((chat) => ({
     chatId: chat.chatId,
@@ -18,43 +20,95 @@ router.get("/chats", (req, res) => {
 
   res.json(chats);
 });
-// Получение списка чатов
+
 router.get("/chats/:chatId", (req, res) => {
   const chat = chatStore.get(Number(req.params.chatId));
 
   if (!chat) {
-    return res.status(404).json({ error: "Чат не найден" });
+    res.status(404).json({ error: "Чат не найден" });
+  } else {
+    const formattedMessages = chat.messages.map((msg, index) =>
+      formatMessage(msg, index)
+    );
+    res.json(formattedMessages);
+  }
+});
+//@ts-ignore
+// req error
+router.post("/chats/:chatId/reply", async (req: Request, res: Response) => {
+  const chatId = Number(req.params.chatId);
+  const { text } = req.body;
+
+  if (!text) {
+    return res.status(400).json({ error: "No text provided" });
   }
 
-  const formattedMessages = chat.messages.map((msg, index) =>
-    formatMessage(msg, index)
-  );
+  try {
+    // Сохраняем сообщение как "от бота", но по сути — это оператор
+    saveMessage(chatId, "Operator", {
+      role: "assistant",
+      content: text,
+      timestamp: new Date(),
+    });
 
-  res.json(formattedMessages);
+    // Отправляем его в Telegram
+    await bot.api.sendMessage(chatId, text);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
-// Отправка сообщения от оператора
+//@ts-ignore
+// req error
 router.post("/chats/:chatId/send", async (req, res) => {
-  const { text } = req.body;
   const chatId = Number(req.params.chatId);
+  const { text } = req.body;
 
-  await bot.api.sendMessage(chatId, text);
+  if (!text) {
+    return res.status(400).json({ error: "No text provided" });
+  }
 
-  const message = {
-    role: "assistant" as const,
-    content: text,
-    timestamp: new Date(),
-  };
+  try {
+    // Сохраняем сообщение пользователя
+    saveMessage(chatId, "User", {
+      role: "user",
+      content: text,
+      timestamp: new Date(),
+    });
 
-  saveMessage(chatId, "Operator", message);
+    // Собираем предыдущую историю чата из store (если нужно)
+    const chat = chatStore.get(chatId);
+    const chatHistory = chat?.messages || [];
 
-  // Отправляем сообщение сразу в нужном формате
-  res.json({
-    id: Date.now(), // временный ID, на фронте можно будет заменить
-    text: message.content,
-    sender: "operator",
-    timestamp: message.timestamp,
-  });
+    // Подделываем Telegram-контекст
+    const fakeCtx = {
+      from: { first_name: "User" },
+      session: {
+        chatHistory,
+      },
+    };
+
+    // Получаем ответ от AI
+    const response = await getAIResponse(fakeCtx as any, text, `Клиент User`);
+
+    // Сохраняем ответ бота
+    saveMessage(chatId, "Bot", {
+      role: "assistant",
+      content: response,
+      timestamp: new Date(),
+    });
+
+    // Отправляем сообщение в Telegram
+    await bot.api.sendMessage(chatId, response);
+
+    res.json({ success: true, reply: response });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 export default router;

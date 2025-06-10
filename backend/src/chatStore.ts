@@ -12,52 +12,6 @@ type ChatEntry = {
 
 export const chatStore = new Map<number, ChatEntry>();
 
-// Генерация тестовых данных
-function initializeMockData() {
-  const mockChats: ChatEntry[] = [
-    {
-      chatId: 123456789,
-      userName: "Иван Петров",
-      avatar: "https://i.pravatar.cc/150?img=1",
-      status: "online",
-      updatedAt: new Date(),
-      messages: [
-        {
-          role: "user",
-          content: "Здравствуйте, у меня проблема с принтером",
-          timestamp: new Date(Date.now() - 3600000),
-        },
-        {
-          role: "assistant",
-          content: "Опишите подробнее вашу проблему",
-          timestamp: new Date(Date.now() - 1800000),
-        },
-      ],
-    },
-    {
-      chatId: 987654321,
-      userName: "Анна Сидорова",
-      avatar: "https://i.pravatar.cc/150?img=3",
-      status: "waiting",
-      updatedAt: new Date(Date.now() - 86400000),
-      messages: [
-        {
-          role: "user",
-          content: "Нужна заправка картриджа для HP LJ 1020",
-          timestamp: new Date(Date.now() - 86400000),
-        },
-      ],
-    },
-  ];
-
-  mockChats.forEach((chat) => {
-    chatStore.set(chat.chatId, chat);
-  });
-}
-
-// Инициализация при первом импорте
-initializeMockData();
-
 export function saveMessage(
   chatId: number,
   userName: string,
@@ -80,7 +34,6 @@ export function saveMessage(
   }
 }
 
-// Дополнительные методы для работы с хранилищем
 export function getChat(chatId: number) {
   return chatStore.get(chatId);
 }

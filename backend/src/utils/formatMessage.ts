@@ -1,11 +1,10 @@
-// utils/formatMessage.ts
 import { ChatMessage } from "../types";
 
-export function formatMessage(message: ChatMessage, index: number) {
+export function formatMessage(msg: ChatMessage, index: number) {
   return {
     id: index,
-    text: message.content,
-    sender: message.role === "assistant" ? "operator" : "user",
-    timestamp: message.timestamp,
+    text: msg.content,
+    sender: msg.role === "assistant" ? "operator" : msg.role,
+    timestamp: msg.timestamp.toISOString(),
   };
 }
