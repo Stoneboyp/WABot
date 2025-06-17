@@ -12,6 +12,7 @@ import {
 } from "../../scenarios/cartridge";
 import { setupGreeting } from "../../scenarios/greeting";
 import { setupPurchase } from "../../scenarios/purchase";
+import { broadcastTo } from "../../ws/socket-server";
 
 export const bot = new Bot<MyContext>(process.env.TG_TOKEN!);
 
@@ -67,7 +68,14 @@ bot.on("message:text", async (ctx: MyContext) => {
       timestamp: new Date(),
     }
   );
-
+  broadcastTo(ctx.chat.id.toString(), {
+    type: "new_message",
+    payload: {
+      sender: "bot", // или "user", "operator"
+      content: "Пример текста",
+      timestamp: new Date(),
+    },
+  });
   // Если включён сценарий ремонта
   if (ctx.session.scenario === "repair") {
     return await handleRepairSteps(ctx);
