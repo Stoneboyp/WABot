@@ -23,11 +23,11 @@ export const ChatLayout = () => {
             size={{ xs: 12, md: 4 }}
             sx={{ borderRight: "1px solid #ccc", height: "100%" }}
           >
-            <ChatList onSelect={setSelectedChat} />
+            <ChatList onSelect={(chat) => setSelectedChat(chat)} />
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             {selectedChat !== null ? (
-              <ChatWindow chatId={selectedChat} />
+              <ChatWindow chat={selectedChat} />
             ) : (
               <Box
                 display="flex"

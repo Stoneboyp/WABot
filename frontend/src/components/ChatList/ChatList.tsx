@@ -10,25 +10,18 @@ import {
   Box,
 } from "@mui/material";
 import { fetchChats } from "../../../services/api";
+import type { Chat } from "../../types";
 
-type Chat = {
-  chatId: number;
-  userName: string;
-  avatar?: string;
-  updatedAt: string;
-  status: "online" | "offline" | "waiting";
+type ChatListProps = {
+  onSelect: (chat: Chat) => void;
 };
 
-export const ChatList = ({
-  onSelect,
-}: {
-  onSelect: (chatId: number) => void;
-}) => {
+export const ChatList = ({ onSelect }: ChatListProps) => {
   const [chats, setChats] = useState<Chat[]>([]);
 
   useEffect(() => {
     const loadChats = async () => {
-      const data = await fetchChats(); // должен вернуть массив чатов
+      const data = await fetchChats();
       setChats(data);
     };
     loadChats();
@@ -41,11 +34,7 @@ export const ChatList = ({
       </Typography>
       <List>
         {chats.map((chat) => (
-          <ListItem
-            key={chat.chatId}
-            button
-            onClick={() => onSelect(chat.chatId)}
-          >
+          <ListItem key={chat.chatId} button onClick={() => onSelect(chat)}>
             <ListItemAvatar>
               <Avatar src={chat.avatar} />
             </ListItemAvatar>

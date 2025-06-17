@@ -9,15 +9,25 @@ export const fetchChats = async () => {
   return response.data;
 };
 
-export const sendMessage = async (chatId: number, text: string) => {
-  const response = await api.post(`/chats/${chatId}/send`, { text });
-  return response.data; // вот здесь возвращаем данные (например { success, reply })
-};
-export const fetchMessages = async (chatId: number) => {
-  const response = await api.get(`/chats/${chatId}`);
+export const fetchMessages = async (chatId: string, platform: string) => {
+  const response = await api.get(`/chats/${chatId}?platform=${platform}`);
   return response.data;
 };
-export const sendOperatorReply = async (chatId: number, text: string) => {
-  const response = await api.post(`/chats/${chatId}/reply`, { text });
+
+export const sendMessage = async (
+  chatId: string,
+  text: string,
+  platform: string
+) => {
+  const response = await api.post(`/chats/${chatId}/send`, { text, platform });
+  return response.data;
+};
+
+export const sendOperatorReply = async (
+  chatId: string,
+  text: string,
+  platform: string
+) => {
+  const response = await api.post(`/chats/${chatId}/reply`, { text, platform });
   return response.data;
 };

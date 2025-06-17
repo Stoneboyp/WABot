@@ -56,11 +56,17 @@ bot.on("message:text", async (ctx: MyContext) => {
   });
 
   // Сохраняем сообщение в чат-сторе
-  saveMessage(ctx.chat.id, `${firstName} ${lastName}`, {
-    role: "user",
-    content: message,
-    timestamp: new Date(),
-  });
+  if (!ctx.from) return;
+  saveMessage(
+    "telegram",
+    ctx.chat.id.toString(),
+    `${ctx.from.first_name || ""} ${ctx.from.last_name || ""}`, // username
+    {
+      role: "user",
+      content: ctx.message.text,
+      timestamp: new Date(),
+    }
+  );
 
   // Если включён сценарий ремонта
   if (ctx.session.scenario === "repair") {

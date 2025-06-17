@@ -1,8 +1,8 @@
 import { bot } from "./bot";
 
 export async function sendTelegramMessage(
-  chatId: number,
+  chatId: string,
   text: string
 ): Promise<void> {
-  await bot.api.sendMessage(chatId, text);
+  await bot.api.sendMessage(Number(chatId), text);
 }

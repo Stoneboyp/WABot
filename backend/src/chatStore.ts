@@ -1,30 +1,40 @@
-// src/chatStore.ts
 import { ChatMessage } from "./types";
 
-type ChatEntry = {
-  chatId: number;
+export type ChatPlatform = "whatsapp" | "telegram" | "other";
+
+export interface ChatEntry {
+  platform: ChatPlatform;
+  chatId: string;
   userName: string;
   avatar?: string;
   messages: ChatMessage[];
   updatedAt: Date;
   status: "online" | "offline" | "waiting";
-};
+}
 
-export const chatStore = new Map<number, ChatEntry>();
+// 🧠 Используем составной ключ
+function makeKey(platform: ChatPlatform, chatId: string) {
+  return `${platform}:${chatId}`;
+}
+
+const chatStore = new Map<string, ChatEntry>();
 
 export function saveMessage(
-  chatId: number,
+  platform: ChatPlatform,
+  chatId: string,
   userName: string,
   message: ChatMessage
 ) {
-  const existing = chatStore.get(chatId);
+  const key = makeKey(platform, chatId);
+  const existing = chatStore.get(key);
 
   if (existing) {
     existing.messages.push(message);
     existing.updatedAt = new Date();
-    existing.status = "online"; // Обновляем статус при новом сообщении
+    existing.status = "online";
   } else {
-    chatStore.set(chatId, {
+    chatStore.set(key, {
+      platform,
       chatId,
       userName,
       messages: [message],
@@ -34,22 +44,28 @@ export function saveMessage(
   }
 }
 
-export function getChat(chatId: number) {
-  return chatStore.get(chatId);
+export function getChat(
+  platform: ChatPlatform,
+  chatId: string
+): ChatEntry | undefined {
+  return chatStore.get(makeKey(platform, chatId));
 }
 
-export function getAllChats() {
+export function getAllChats(): ChatEntry[] {
   return Array.from(chatStore.values()).sort(
     (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()
   );
 }
 
 export function updateChatStatus(
-  chatId: number,
+  platform: ChatPlatform,
+  chatId: string,
   status: "online" | "offline" | "waiting"
 ) {
-  const chat = chatStore.get(chatId);
+  const chat = chatStore.get(makeKey(platform, chatId));
   if (chat) {
     chat.status = status;
   }
 }
+
+export { chatStore };

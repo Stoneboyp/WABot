@@ -6,6 +6,7 @@ import {
   sendMessage,
   sendOperatorReply,
 } from "../../../services/api";
+import type { Chat } from "../../context/ChatContext";
 
 interface Message {
   id: number;
@@ -13,29 +14,29 @@ interface Message {
   sender: string;
   timestamp: string;
 }
+type ChatWindowProps = {
+  chat: Chat;
+};
 
-export const ChatWindow = ({ chatId }: { chatId: number }) => {
+export const ChatWindow = ({ chat }: ChatWindowProps) => {
+  const { chatId, platform, userName } = chat;
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [isOperatorMode, setIsOperatorMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const loadMessages = async () => {
-      const data = await fetchMessages(chatId);
+      const data = await fetchMessages(chatId, platform);
       setMessages(data);
     };
     loadMessages();
-  }, [chatId]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [chatId, platform]);
 
   const handleSend = async (text: string) => {
     try {
       if (isOperatorMode) {
-        // Ручной ответ от оператора
-        await sendOperatorReply(chatId, text);
+        await sendOperatorReply(chatId, text, platform);
         setMessages((prev) => [
           ...prev,
           {
@@ -46,8 +47,7 @@ export const ChatWindow = ({ chatId }: { chatId: number }) => {
           },
         ]);
       } else {
-        // Ответ от ИИ
-        const response = await sendMessage(chatId, text);
+        const response = await sendMessage(chatId, text, platform);
         setMessages((prev) => [
           ...prev,
           {
@@ -75,7 +75,7 @@ export const ChatWindow = ({ chatId }: { chatId: number }) => {
       sx={{ height: "75vh", display: "flex", flexDirection: "column" }}
     >
       <Stack direction="row" justifyContent="space-between" p={2}>
-        <Typography variant="h6">Чат</Typography>
+        <Typography variant="h6">Чат с {userName}</Typography>
         <Button
           size="small"
           variant="outlined"
