@@ -6,7 +6,7 @@ import {
   sendMessage,
   sendOperatorReply,
 } from "../../../services/api";
-import type { Chat } from "../../context/ChatContext";
+import { useWebSocket } from "../../hooks/useWebSocket";
 
 interface Message {
   id: number;
@@ -14,60 +14,84 @@ interface Message {
   sender: string;
   timestamp: string;
 }
-type ChatWindowProps = {
-  chat: Chat;
-};
 
-export const ChatWindow = ({ chat }: ChatWindowProps) => {
-  const { chatId, platform, userName } = chat;
-
+export const ChatWindow = ({
+  chat,
+}: {
+  chat: {
+    chatId: string;
+    platform: string;
+    userName: string;
+  };
+}) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isOperatorMode, setIsOperatorMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const loadMessages = async () => {
-      const data = await fetchMessages(chatId, platform);
+      const data = await fetchMessages(chat.chatId, chat.platform);
       setMessages(data);
     };
     loadMessages();
-  }, [chatId, platform]);
+  }, [chat.chatId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSend = async (text: string) => {
     try {
+      const now = new Date().toISOString();
+
       if (isOperatorMode) {
-        await sendOperatorReply(chatId, text, platform);
+        await sendOperatorReply(chat.chatId, text, chat.platform);
         setMessages((prev) => [
           ...prev,
           {
             id: Date.now(),
             text,
             sender: "operator",
-            timestamp: new Date().toISOString(),
+            timestamp: now,
           },
         ]);
       } else {
-        const response = await sendMessage(chatId, text, platform);
+        const response = await sendMessage(chat.chatId, text, chat.platform);
         setMessages((prev) => [
           ...prev,
           {
             id: Date.now(),
             text,
             sender: "user",
-            timestamp: new Date().toISOString(),
+            timestamp: now,
           },
           {
             id: Date.now() + 1,
             text: response.reply,
             sender: "bot",
-            timestamp: new Date().toISOString(),
+            timestamp: now,
           },
         ]);
       }
     } catch (error) {
-      console.error("Ошибка отправки сообщения:", error);
+      console.error("Send error:", error);
     }
   };
+
+  useWebSocket(chat.chatId, (data) => {
+    if (data.type === "new_message") {
+      const msg = data.payload;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          text: msg.content,
+          sender: msg.sender,
+          timestamp: msg.timestamp,
+        },
+      ]);
+    }
+  });
 
   return (
     <Paper
@@ -75,13 +99,15 @@ export const ChatWindow = ({ chat }: ChatWindowProps) => {
       sx={{ height: "75vh", display: "flex", flexDirection: "column" }}
     >
       <Stack direction="row" justifyContent="space-between" p={2}>
-        <Typography variant="h6">Чат с {userName}</Typography>
+        <Typography variant="h6">
+          Чат с {chat.userName} ({chat.platform})
+        </Typography>
         <Button
           size="small"
           variant="outlined"
           onClick={() => setIsOperatorMode((prev) => !prev)}
         >
-          {isOperatorMode ? "Режим: Оператор" : "Режим: AI"}
+          {isOperatorMode ? "Оператор" : "AI"}
         </Button>
       </Stack>
 

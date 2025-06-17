@@ -71,11 +71,12 @@ bot.on("message:text", async (ctx: MyContext) => {
   broadcastTo(ctx.chat.id.toString(), {
     type: "new_message",
     payload: {
-      sender: "bot", // или "user", "operator"
-      content: "Пример текста",
+      sender: "user", // или bot/operator по логике
+      content: ctx.message.text,
       timestamp: new Date(),
     },
   });
+
   // Если включён сценарий ремонта
   if (ctx.session.scenario === "repair") {
     return await handleRepairSteps(ctx);
@@ -116,6 +117,14 @@ bot.on("message:text", async (ctx: MyContext) => {
 
     // Обычный ответ от AI
     await ctx.reply(response);
+    broadcastTo(ctx.chat.id.toString(), {
+      type: "new_message",
+      payload: {
+        sender: "bot",
+        content: response,
+        timestamp: new Date(),
+      },
+    });
   } catch (err) {
     console.error("AI error:", err);
     await ctx.reply("Произошла ошибка, попробуйте позже");
