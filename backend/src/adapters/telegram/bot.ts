@@ -5,13 +5,6 @@ import { Bot, session } from "grammy";
 import { MyContext, SessionData } from "../../types";
 import { getAIResponse } from "../../services/ai-service";
 import { saveMessage } from "../../chatStore";
-import { setupRepairScenario, handleRepairSteps } from "../../scenarios/repair";
-import {
-  setupCartridgeScenario,
-  handleCartridgeStep,
-} from "../../scenarios/cartridge";
-import { setupGreeting } from "../../scenarios/greeting";
-import { setupPurchase } from "../../scenarios/purchase";
 import { broadcastTo } from "../../ws/socket-server";
 
 export const bot = new Bot<MyContext>(process.env.TG_TOKEN!);
@@ -25,18 +18,6 @@ bot.use(
     },
   })
 );
-
-// Инициализация всех сценариев
-setupGreeting(bot);
-setupRepairScenario(bot);
-setupCartridgeScenario(bot);
-setupPurchase(bot);
-
-// Команда для активации AI-режима
-bot.command("ai", async (ctx) => {
-  ctx.session.scenario = "ai_chat";
-  await ctx.reply("Режим AI-консультанта активирован. Задавайте вопросы!");
-});
 
 // Обработка текстовых сообщений
 bot.on("message:text", async (ctx: MyContext) => {
@@ -77,19 +58,6 @@ bot.on("message:text", async (ctx: MyContext) => {
     },
   });
 
-  // Если включён сценарий ремонта
-  if (ctx.session.scenario === "repair") {
-    return await handleRepairSteps(ctx);
-  }
-
-  // Если включён сценарий картриджа
-  if (ctx.session.scenario === "cartridge") {
-    return await handleCartridgeStep(ctx);
-  }
-
-  // Если другой сценарий, кроме AI — игнорируем обычную обработку
-  if (ctx.session.scenario && ctx.session.scenario !== "ai_chat") return;
-
   // AI-режим или обычная обработка
   try {
     const response = await getAIResponse(
@@ -97,24 +65,6 @@ bot.on("message:text", async (ctx: MyContext) => {
       message,
       `Клиент: ${firstName} ${lastName}`
     );
-
-    // Триггеры перехода в сценарии
-    if (response.includes("[TRIGGER_REPAIR]")) {
-      ctx.session.scenario = "repair";
-      ctx.session.step = "type";
-      return ctx.reply("Давайте оформим заявку на ремонт...");
-    }
-    if (response.includes("[TRIGGER_CARTRIDGE]")) {
-      ctx.session.scenario = "cartridge";
-      ctx.session.step = undefined; // если нужен стартовый шаг
-      return ctx.reply("Укажите модель картриджа или принтера:");
-    }
-    if (response.includes("[TRIGGER_PURCHASE]")) {
-      ctx.session.scenario = "purchase";
-      ctx.session.step = undefined;
-      return ctx.reply("Выберите технику для покупки или задайте вопрос.");
-    }
-
     // Обычный ответ от AI
     await ctx.reply(response);
     broadcastTo(ctx.chat.id.toString(), {

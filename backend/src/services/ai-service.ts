@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
+
 import OpenAI from "openai";
 import Groq from "groq-sdk";
 import { MyContext } from "../types";
@@ -24,48 +25,26 @@ export async function getAIResponse(
   prompt: string,
   context = ""
 ): Promise<string> {
-  if (!ctx.session.chatHistory) ctx.session.chatHistory = [];
+  ctx.session.chatHistory ||= [];
 
-  const systemPrompt = `Ты консультант сервиса по ремонту офисной техники.
-Если клиент хочет оформить заказ, используй триггеры:
-[TRIGGER_CARTRIDGE] - заправка картриджа
-[TRIGGER_REPAIR] - ремонт техники
-[TRIGGER_PURCHASE] - покупка техники
-
-Текущие данные клиента:
-${JSON.stringify({
-  name: ctx.from?.first_name,
-  scenario: ctx.session.scenario,
-})}`;
+  const systemPrompt = `Ты — AI-помощник в чате техподдержки. Общайся вежливо, задавай уточняющие вопросы при необходимости.`;
 
   const openaiMessages: OpenAIMessage[] = [
-    {
-      role: "system",
-      content: systemPrompt + "\n" + context,
-    },
+    { role: "system", content: systemPrompt + "\n" + context },
     ...ctx.session.chatHistory.map((m) => ({
       role: m.role as "user" | "assistant",
       content: m.content,
     })),
-    {
-      role: "user",
-      content: prompt,
-    },
+    { role: "user", content: prompt },
   ];
 
   const groqMessages: GroqMessage[] = [
-    {
-      role: "system",
-      content: systemPrompt + "\n" + context,
-    },
+    { role: "system", content: systemPrompt + "\n" + context },
     ...ctx.session.chatHistory.map((m) => ({
       role: m.role as "user" | "assistant",
       content: m.content,
     })),
-    {
-      role: "user",
-      content: prompt,
-    },
+    { role: "user", content: prompt },
   ];
 
   async function tryOpenAICompletion(client: OpenAI, model: string) {
@@ -118,7 +97,7 @@ ${JSON.stringify({
       return response;
     } catch (errDeepSeek) {
       console.log(
-        "DeepSeek error, fallback to Groq API:",
+        "DeepSeek error, fallback to Groq:",
         (errDeepSeek as Error).message
       );
 
@@ -133,8 +112,8 @@ ${JSON.stringify({
 
         return response;
       } catch (errGroq) {
-        console.error("Groq API error:", (errGroq as Error).message);
-        throw new Error("AI-сервисы временно недоступны");
+        console.error("Groq error:", (errGroq as Error).message);
+        throw new Error("Все AI-сервисы временно недоступны.");
       }
     }
   }
