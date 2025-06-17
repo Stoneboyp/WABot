@@ -1,4 +1,5 @@
 import { ChatMessage } from "./types";
+import { broadcastAll } from "./ws/socket-server";
 
 export type ChatPlatform = "whatsapp" | "telegram" | "other";
 
@@ -33,13 +34,21 @@ export function saveMessage(
     existing.updatedAt = new Date();
     existing.status = "online";
   } else {
-    chatStore.set(key, {
+    const newChat: ChatEntry = {
       platform,
       chatId,
       userName,
       messages: [message],
       updatedAt: new Date(),
       status: "online",
+    };
+
+    chatStore.set(key, newChat);
+
+    // 👇 Отправляем фронту, что появился новый чат
+    broadcastAll({
+      type: "new_chat",
+      payload: newChat,
     });
   }
 }

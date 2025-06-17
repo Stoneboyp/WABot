@@ -16,6 +16,14 @@ export function setupWebSocket(server: http.Server) {
       return;
     }
 
+    if (clients.has(chatId)) {
+      console.log(
+        `⚠️ Client ${chatId} already connected. Closing previous socket`
+      );
+      const prev = clients.get(chatId);
+      prev?.close();
+    }
+
     clients.set(chatId, ws);
     console.log(`🔌 WebSocket client connected: ${chatId}`);
 
@@ -32,3 +40,12 @@ export function broadcastTo(chatId: string, message: any) {
     socket.send(JSON.stringify(message));
   }
 }
+
+export function broadcastAll(message: any) {
+  for (const [chatId, socket] of clients.entries()) {
+    if (socket.readyState === socket.OPEN) {
+      socket.send(JSON.stringify(message));
+    }
+  }
+}
+console.log("🔥 WebSocket server initialized");
