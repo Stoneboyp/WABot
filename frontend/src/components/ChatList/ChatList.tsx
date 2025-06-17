@@ -29,9 +29,7 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
 
   useEffect(() => {
     const ws = new WebSocket(`ws://localhost:${PORT}/?chatId=admin`);
-    ws.onopen = () => console.log("✅ WS connected");
-    ws.onclose = () => console.log("❌ WS closed");
-    ws.onerror = (e) => console.error("💥 WS error", e);
+
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
@@ -65,7 +63,14 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
       console.error("WebSocket error:", err);
     };
 
-    return () => ws.close();
+    return () => {
+      if (
+        ws.readyState === WebSocket.OPEN ||
+        ws.readyState === WebSocket.CONNECTING
+      ) {
+        ws.close();
+      }
+    };
   }, []);
 
   return (
