@@ -122,7 +122,9 @@ export const ChatWindow = ({
             mb={1}
             display="flex"
             justifyContent={
-              msg.sender === "operator" ? "flex-end" : "flex-start"
+              msg.sender === "operator" || msg.sender === "bot"
+                ? "flex-end"
+                : "flex-start"
             }
           >
             <Box
@@ -131,7 +133,10 @@ export const ChatWindow = ({
               borderRadius={2}
               maxWidth="75%"
               sx={{
-                backgroundColor: msg.sender === "operator" ? "#dcf8c6" : "#fff",
+                backgroundColor:
+                  msg.sender === "operator" || msg.sender === "bot"
+                    ? "#dcf8c6"
+                    : "#fff",
               }}
             >
               <Typography variant="body2">{msg.text}</Typography>
