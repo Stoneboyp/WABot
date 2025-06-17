@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { getAIResponse } from "../services/ai-service";
 import { chatStore, saveMessage } from "../chatStore";
 import { formatMessage } from "../utils/formatMessage";
-import { bot } from "../bot";
+import { bot } from "../adapters/telegram/bot";
 
 // Create the router
 const router = express.Router();

@@ -1,5 +1,5 @@
 // services/notifications.ts
-import { bot } from "../bot";
+import { bot } from "../adapters/telegram/bot";
 import dotenv from "dotenv";
 import { RepairRequest } from "../types";
 

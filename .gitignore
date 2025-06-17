@@ -15,23 +15,24 @@ yarn-error.log*
 /build/
 /out/
 
-# Vite кэш
+# Vite
 /.vite/
 
 # TypeScript
 *.tsbuildinfo
 
-# IDE и ОС файлы
+# IDE
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+GIT-CONVENTIONALS.md
 
-# Environment variables (секреты)
+# Environment variables
 .env
 **/.env
 
-# Папки с билдом фронтенда (если фронт билдится в отдельную папку внутри frontend)
+# Папки с билдом фронтенда
 /frontend/dist/
 /backend/dist/ # если бэкенд билдится
 

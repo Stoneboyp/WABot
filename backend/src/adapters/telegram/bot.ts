@@ -2,16 +2,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { Bot, session } from "grammy";
-import { MyContext, SessionData } from "./types";
-import { getAIResponse } from "./services/ai-service";
-import { saveMessage } from "./chatStore";
-import { setupRepairScenario, handleRepairSteps } from "./scenarios/repair";
+import { MyContext, SessionData } from "../../types";
+import { getAIResponse } from "../../services/ai-service";
+import { saveMessage } from "../../chatStore";
+import { setupRepairScenario, handleRepairSteps } from "../../scenarios/repair";
 import {
   setupCartridgeScenario,
   handleCartridgeStep,
-} from "./scenarios/cartridge";
-import { setupGreeting } from "./scenarios/greeting";
-import { setupPurchase } from "./scenarios/purchase";
+} from "../../scenarios/cartridge";
+import { setupGreeting } from "../../scenarios/greeting";
+import { setupPurchase } from "../../scenarios/purchase";
 
 export const bot = new Bot<MyContext>(process.env.TG_TOKEN!);
 

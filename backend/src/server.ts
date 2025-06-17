@@ -1,6 +1,6 @@
 import express from "express";
 import chatApi from "./api/chat-api";
-import { bot } from "./bot";
+import { bot } from "./adapters/telegram/bot";
 import cors from "cors";
 
 const app = express();
