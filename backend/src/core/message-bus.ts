@@ -5,7 +5,7 @@ export async function sendMessageToClient(
   platform: ChatPlatform,
   chatId: string,
   text: string
-) {
+): Promise<void> {
   const chat = getChat(platform, chatId);
   if (!chat) throw new Error("Chat not found");
   console.log("🚨 Платформа:", platform);

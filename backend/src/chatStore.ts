@@ -42,11 +42,11 @@ export function saveMessage(
       messages: [message],
       updatedAt: new Date(),
       status: "online",
+      mode: "ai", // по умолчанию
     };
 
     chatStore.set(key, newChat);
 
-    // 👇 Отправляем фронту, что появился новый чат
     broadcastAll({
       type: "new_chat",
       payload: newChat,
