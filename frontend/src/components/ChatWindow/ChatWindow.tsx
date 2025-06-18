@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import { Box, Typography, Paper, Button, Stack } from "@mui/material";
 import { MessageInput } from "@components/MessageInput/MessageInput";
 import {
@@ -8,6 +8,7 @@ import {
   updateChatMode,
 } from "../../../services/api";
 import { useWebSocket } from "../../hooks/useWebSocket";
+import { useChatContext } from "@/context/ChatContext";
 
 interface Message {
   id: number;
@@ -26,7 +27,7 @@ export const ChatWindow = ({
   };
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isOperatorMode, setIsOperatorMode] = useState(false);
+  const { isOperatorMode, setIsOperatorMode } = useChatContext();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -169,7 +170,7 @@ export const ChatWindow = ({
         <div ref={messagesEndRef} />
       </Box>
 
-      <MessageInput onSend={handleSend} />
+      {isOperatorMode ? <MessageInput onSend={handleSend} /> : null}
     </Paper>
   );
 };
