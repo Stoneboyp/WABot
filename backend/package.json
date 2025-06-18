@@ -3,7 +3,7 @@
     "start": "node dist/server.js",
     "build": "tsc",
     "dev": "nodemon",
-    "dev:rebuild": "rm -rf dist && npm run build"
+    "dev:rebuild": "rm -r dist && npm run build"
   },
   "devDependencies": {
     "@types/cors": "^2.8.18",

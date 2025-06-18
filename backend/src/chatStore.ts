@@ -10,6 +10,7 @@ export interface ChatEntry {
   avatar?: string;
   messages: ChatMessage[];
   updatedAt: Date;
+  mode?: "operator" | "ai";
   status: "online" | "offline" | "waiting";
 }
 
@@ -74,6 +75,17 @@ export function updateChatStatus(
   const chat = chatStore.get(makeKey(platform, chatId));
   if (chat) {
     chat.status = status;
+  }
+}
+
+export function setChatMode(
+  platform: ChatPlatform,
+  chatId: string,
+  mode: "operator" | "ai"
+) {
+  const chat = chatStore.get(makeKey(platform, chatId));
+  if (chat) {
+    chat.mode = mode;
   }
 }
 

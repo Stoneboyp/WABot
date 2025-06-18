@@ -4,7 +4,7 @@ dotenv.config();
 import { Bot, session } from "grammy";
 import { MyContext, SessionData } from "../../types";
 import { getAIResponse } from "../../services/ai-service";
-import { saveMessage } from "../../chatStore";
+import { getChat, saveMessage } from "../../chatStore";
 import { broadcastTo } from "../../ws/socket-server";
 
 export const bot = new Bot<MyContext>(process.env.TG_TOKEN!);
@@ -29,6 +29,9 @@ bot.on("message:text", async (ctx: MyContext) => {
   const firstName = from?.first_name ?? "Пользователь";
   const lastName = from?.last_name ?? "";
 
+  const chatId = ctx.chat.id.toString();
+  const platform = "telegram";
+
   // Инициализация истории чата
   ctx.session.chatHistory ||= [];
   ctx.session.chatHistory.push({
@@ -40,34 +43,43 @@ bot.on("message:text", async (ctx: MyContext) => {
   // Сохраняем сообщение в чат-сторе
   if (!ctx.from) return;
   saveMessage(
-    "telegram",
-    ctx.chat.id.toString(),
-    `${ctx.from.first_name || ""} ${ctx.from.last_name || ""}`, // username
+    platform,
+    chatId,
+    `${ctx.from.first_name || ""} ${ctx.from.last_name || ""}`,
     {
       role: "user",
-      content: ctx.message.text,
+      content: message,
       timestamp: new Date(),
     }
   );
-  broadcastTo(ctx.chat.id.toString(), {
+
+  broadcastTo(chatId, {
     type: "new_message",
     payload: {
-      sender: "user", // или bot/operator по логике
-      content: ctx.message.text,
+      sender: "user",
+      content: message,
       timestamp: new Date(),
     },
   });
 
-  // AI-режим или обычная обработка
+  // ⛔ Проверка перед вызовом AI
+  const chat = getChat(platform, chatId);
+  if (chat?.mode === "operator") {
+    console.log(`🛑 Chat ${chatId} в режиме operator — AI не отвечает`);
+    return;
+  }
+
+  // 🤖 AI-режим
   try {
     const response = await getAIResponse(
       ctx,
       message,
       `Клиент: ${firstName} ${lastName}`
     );
-    // Обычный ответ от AI
+
     await ctx.reply(response);
-    broadcastTo(ctx.chat.id.toString(), {
+
+    broadcastTo(chatId, {
       type: "new_message",
       payload: {
         sender: "bot",

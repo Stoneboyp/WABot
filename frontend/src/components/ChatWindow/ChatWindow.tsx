@@ -5,6 +5,7 @@ import {
   fetchMessages,
   sendMessage,
   sendOperatorReply,
+  updateChatMode,
 } from "../../../services/api";
 import { useWebSocket } from "../../hooks/useWebSocket";
 
@@ -39,8 +40,8 @@ export const ChatWindow = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
   const handleSend = async (text: string) => {
+    console.log(`[SEND] Mode: ${isOperatorMode ? "operator" : "AI"}`);
     try {
       const now = new Date().toISOString();
 
@@ -56,7 +57,13 @@ export const ChatWindow = ({
           },
         ]);
       } else {
-        const response = await sendMessage(chat.chatId, text, chat.platform);
+        const mode = isOperatorMode ? "operator" : "ai";
+        const response = await sendMessage(
+          chat.chatId,
+          text,
+          chat.platform,
+          mode
+        );
         setMessages((prev) => [
           ...prev,
           {
@@ -105,7 +112,17 @@ export const ChatWindow = ({
         <Button
           size="small"
           variant="outlined"
-          onClick={() => setIsOperatorMode((prev) => !prev)}
+          onClick={async () => {
+            const newMode = isOperatorMode ? "ai" : "operator";
+            setIsOperatorMode(!isOperatorMode);
+
+            try {
+              await updateChatMode(chat.chatId, chat.platform, newMode);
+              console.log(`[MODE] switched to ${newMode}`);
+            } catch (error) {
+              console.error("Ошибка при обновлении режима:", error);
+            }
+          }}
         >
           {isOperatorMode ? "Оператор" : "AI"}
         </Button>

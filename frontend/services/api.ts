@@ -17,9 +17,14 @@ export const fetchMessages = async (chatId: string, platform: string) => {
 export const sendMessage = async (
   chatId: string,
   text: string,
-  platform: string
+  platform: string,
+  mode: "ai" | "operator" = "ai"
 ) => {
-  const response = await api.post(`/chats/${chatId}/send`, { text, platform });
+  const response = await api.post(`/chats/${chatId}/send`, {
+    text,
+    platform,
+    mode,
+  });
   return response.data;
 };
 
@@ -30,4 +35,15 @@ export const sendOperatorReply = async (
 ) => {
   const response = await api.post(`/chats/${chatId}/reply`, { text, platform });
   return response.data;
+};
+
+export const updateChatMode = async (
+  chatId: string,
+  platform: string,
+  mode: "operator" | "ai"
+) => {
+  return api.post(`/chats/${chatId}/mode`, {
+    platform,
+    mode,
+  });
 };

@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { getAIResponse } from "../services/ai-service";
-import { saveMessage, getChat, getAllChats } from "../chatStore";
+import { saveMessage, getChat, getAllChats, setChatMode } from "../chatStore";
 import { sendMessageToClient } from "../core/message-bus";
 import { formatMessage } from "../utils/formatMessage";
 import { ChatPlatform } from "../chatStore";
@@ -85,7 +85,7 @@ router.post("/chats/:chatId/reply", async (req: Request, res: Response) => {
 router.post("/chats/:chatId/send", async (req: Request, res: Response) => {
   const platform = req.body.platform as ChatPlatform;
   const chatId = req.params.chatId;
-  const { text } = req.body;
+  const { text, mode } = req.body;
 
   if (!text) {
     return res.status(400).json({ error: "No text provided" });
@@ -101,7 +101,13 @@ router.post("/chats/:chatId/send", async (req: Request, res: Response) => {
       content: text,
       timestamp: new Date(),
     });
-
+    console.log(
+      `[MODE SERVER CHECK] chatId=${chatId}, platform=${platform}, mode=${mode}`
+    );
+    if (mode === "operator") {
+      console.log("🛑 Operator mode active — AI won't respond.");
+      return res.json({ success: true, reply: null });
+    }
     // Имитация контекста
     const fakeCtx = {
       from: { first_name: chat.userName },
@@ -131,6 +137,23 @@ router.post("/chats/:chatId/send", async (req: Request, res: Response) => {
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
+});
+
+//@ts-expect-error
+router.post("/chats/:chatId/mode", (req: Request, res: Response) => {
+  const platform = req.body.platform as ChatPlatform;
+  const mode = req.body.mode as "operator" | "ai";
+  const chatId = req.params.chatId;
+
+  if (!mode || !platform) {
+    return res.status(400).json({ error: "Missing mode or platform" });
+  }
+
+  setChatMode(platform, chatId, mode);
+  console.log(
+    `🔄 Chat mode updated: chatId=${chatId}, platform=${platform}, new mode=${mode}`
+  );
+  res.json({ success: true });
 });
 
 export default router;
