@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useContext } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Box, Typography, Paper, Button, Stack } from "@mui/material";
 import { MessageInput } from "@components/MessageInput/MessageInput";
 import {

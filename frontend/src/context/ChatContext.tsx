@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState } from "react";
+import type { ReactNode } from "react";
 import type { Chat } from "../types";
 
 type ChatContextType = {
@@ -12,7 +13,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-  const [isOperatorMode, setIsOperatorMode] = useState(true);
+  const [isOperatorMode, setIsOperatorMode] = useState(false);
   return (
     <ChatContext.Provider
       value={{
@@ -27,7 +28,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useChatContext = (p0?: boolean): ChatContextType => {
+export const useChatContext = (): ChatContextType => {
   const context = useContext(ChatContext);
   if (!context) {
     throw new Error("useChatContext must be used within a ChatProvider");

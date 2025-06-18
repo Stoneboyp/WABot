@@ -82,7 +82,7 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
         {chats.map((chat) => (
           <ListItem
             key={`${chat.platform}:${chat.chatId}`}
-            button
+            component="button"
             onClick={() => onSelect(chat)}
           >
             <ListItemAvatar>
