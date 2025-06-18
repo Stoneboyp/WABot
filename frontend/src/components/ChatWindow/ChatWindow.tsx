@@ -103,7 +103,7 @@ export const ChatWindow = ({
   return (
     <Paper
       elevation={3}
-      sx={{ height: "75vh", display: "flex", flexDirection: "column" }}
+      sx={{ height: "100%", display: "flex", flexDirection: "column" }}
     >
       <Stack direction="row" justifyContent="space-between" p={2}>
         <Typography variant="h6">

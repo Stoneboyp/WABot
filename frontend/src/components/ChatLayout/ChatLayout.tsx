@@ -1,47 +1,38 @@
-import { Box, Container, Grid, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { ChatList } from "@components/ChatList/ChatList";
 import { ChatWindow } from "@components/ChatWindow/ChatWindow";
 import { useChatContext } from "../../context/ChatContext";
+import { Typography } from "@mui/material";
 
 export const ChatLayout = () => {
   const { selectedChat, setSelectedChat } = useChatContext();
 
   return (
-    <Container maxWidth="lg">
-      <Box
-        my={4}
-        sx={{
-          height: "80vh",
-          borderRadius: 2,
-          overflow: "hidden",
-          display: "flex",
-          boxShadow: 3,
-        }}
-      >
-        <Grid container>
-          <Grid
-            size={{ xs: 12, md: 4 }}
-            sx={{ borderRight: "1px solid #ccc", height: "100%" }}
-          >
-            <ChatList onSelect={(chat) => setSelectedChat(chat)} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            {selectedChat !== null ? (
-              <ChatWindow chat={selectedChat} />
-            ) : (
-              <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                height="100%"
-                bgcolor="#f5f5f5"
-              >
-                <Typography variant="h6">Выберите чат</Typography>
-              </Box>
-            )}
-          </Grid>
-        </Grid>
+    <Box display="flex" height="100vh">
+      {/* Левая колонка со списком чатов */}
+      <Box width="320px" borderRight="1px solid #ccc" overflow="auto">
+        <ChatList onSelect={(chat) => setSelectedChat(chat)} />
       </Box>
-    </Container>
+
+      {/* Правая часть — окно чата или заглушка */}
+      <Box flexGrow={1} position="relative">
+        {selectedChat ? (
+          <ChatWindow chat={selectedChat} />
+        ) : (
+          <Box
+            height="100%"
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            bgcolor="#f5f5f5"
+          >
+            <Typography variant="h6" mt={2} color="textSecondary">
+              Выберите чат, чтобы начать диалог
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    </Box>
   );
 };
