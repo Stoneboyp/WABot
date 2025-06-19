@@ -10,13 +10,6 @@ import {
 import { useWebSocket } from "../../hooks/useWebSocket";
 import { useChatContext } from "@/context/ChatContext";
 
-interface Message {
-  id: number;
-  text: string;
-  sender: string;
-  timestamp: string;
-}
-
 export const ChatWindow = ({
   chat,
 }: {
@@ -26,8 +19,8 @@ export const ChatWindow = ({
     userName: string;
   };
 }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const { isOperatorMode, setIsOperatorMode } = useChatContext();
+  const { isOperatorMode, setIsOperatorMode, messages, setMessages } =
+    useChatContext();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
