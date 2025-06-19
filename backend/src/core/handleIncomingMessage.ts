@@ -24,7 +24,7 @@ export async function handleIncomingMessage({
     timestamp: new Date(),
   });
   console.log(`[INCOMING] [${platform}] ${chatId} <- ${text}`);
-  broadcastTo(chatId, {
+  broadcastTo(chatId, platform, {
     type: "new_message",
     payload: {
       sender: "user",
@@ -59,7 +59,7 @@ export async function handleIncomingMessage({
 
     await sendMessageToClient(platform, chatId, response);
 
-    broadcastTo(chatId, {
+    broadcastTo(chatId, platform, {
       type: "new_message",
       payload: {
         sender: "bot",

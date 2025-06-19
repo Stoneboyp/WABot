@@ -1,4 +1,5 @@
 import { sendTelegramMessage } from "../adapters/telegram/telegram-adapter";
+import { sendWhatsAppMessage } from "../adapters/whatsapp/whatsapp-adapter";
 import { getChat, ChatPlatform } from "../chatStore";
 
 export async function sendMessageToClient(
@@ -14,8 +15,7 @@ export async function sendMessageToClient(
   }
 
   if (platform === "whatsapp") {
-    console.log("WhatsApp:", chatId, text);
-    return;
+    return await sendWhatsAppMessage(chatId, text);
   }
 
   if (platform === "other") {

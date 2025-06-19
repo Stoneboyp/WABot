@@ -86,7 +86,7 @@ export const ChatWindow = ({
     }
   };
 
-  useWebSocket(chat.chatId, (data) => {
+  useWebSocket(chat.chatId, chat.platform, (data) => {
     if (data.type === "new_message") {
       const msg = data.payload;
       setMessages((prev) => [

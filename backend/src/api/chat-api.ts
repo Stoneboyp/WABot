@@ -4,6 +4,7 @@ import { saveMessage, getChat, getAllChats, setChatMode } from "../chatStore";
 import { sendMessageToClient } from "../core/message-bus";
 import { formatMessage } from "../utils/formatMessage";
 import { ChatPlatform } from "../chatStore";
+import { handleWebhookFromPlatform } from "../ws/socket-server";
 
 const router = express.Router();
 
@@ -157,3 +158,10 @@ router.post("/chats/:chatId/mode", (req: Request, res: Response) => {
 });
 
 export default router;
+
+//temp use pooling
+// router.post("/webhook/:platform", (req, res) => {
+//   const platform = req.params.platform;
+//   handleWebhookFromPlatform(platform, req.body);
+//   res.sendStatus(200);
+// });

@@ -4,7 +4,8 @@ import http from "http";
 import cors from "cors";
 import chatApi from "./api/chat-api";
 import { bot } from "./adapters/telegram/bot";
-import { setupWebSocket } from "./ws/socket-server"; // 👈 создадим это
+import { startWhatsAppBot } from "./adapters/whatsapp/bot";
+import { setupWebSocket } from "./ws/socket-server";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -39,3 +40,6 @@ bot
   .catch((err) => {
     console.error("Ошибка запуска бота:", err);
   });
+
+// Запуск WhatsApp адаптера
+startWhatsAppBot();

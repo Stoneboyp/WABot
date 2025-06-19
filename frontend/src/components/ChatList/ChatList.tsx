@@ -28,7 +28,9 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
   }, []);
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://localhost:${PORT}/?chatId=admin`);
+    const ws = new WebSocket(
+      `ws://localhost:${PORT}/?chatId=admin&platform=admin`
+    );
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);

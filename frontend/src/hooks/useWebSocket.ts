@@ -1,16 +1,21 @@
 import { useEffect, useRef } from "react";
-
-export function useWebSocket(chatId: string, onMessage: (msg: any) => void) {
+export function useWebSocket(
+  chatId: string,
+  platform: string,
+  onMessage: (msg: any) => void
+) {
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    if (!chatId) return;
+    if (!chatId || !platform) return;
 
-    const ws = new WebSocket(`ws://localhost:3000/?chatId=${chatId}`);
+    const ws = new WebSocket(
+      `ws://localhost:3000/?chatId=${chatId}&platform=${platform}`
+    );
     socketRef.current = ws;
 
     ws.onopen = () => {
-      console.log(`✅ WebSocket connected for chat ${chatId}`);
+      console.log(`✅ WebSocket connected for ${platform}:${chatId}`);
     };
 
     ws.onmessage = (event) => {
@@ -23,11 +28,11 @@ export function useWebSocket(chatId: string, onMessage: (msg: any) => void) {
     };
 
     ws.onclose = () => {
-      console.log(`🔌 WebSocket disconnected for chat ${chatId}`);
+      console.log(`🔌 WebSocket disconnected for ${platform}:${chatId}`);
     };
 
     return () => {
       ws.close();
     };
-  }, [chatId]);
+  }, [chatId, platform]);
 }
