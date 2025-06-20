@@ -17,6 +17,7 @@ export interface ChatEntry {
   updatedAt: Date;
   mode?: "operator" | "ai";
   status: "online" | "offline" | "waiting";
+  notificationSent?: boolean;
 }
 
 export interface SessionData {

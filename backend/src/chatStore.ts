@@ -30,6 +30,7 @@ export function saveMessage(
       updatedAt: new Date(),
       status: "online",
       mode: "ai", // по умолчанию
+      notificationSent: false,
     };
 
     chatStore.set(key, newChat);
@@ -76,4 +77,4 @@ export function setChatMode(
   }
 }
 
-export { chatStore };
+export { chatStore, ChatPlatform };

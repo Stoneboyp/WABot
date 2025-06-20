@@ -20,6 +20,7 @@ router.get("/chats", (req: Request, res: Response) => {
     avatar: chat.avatar,
     updatedAt: chat.updatedAt,
     status: chat.status,
+    notification: chat.notificationSent,
   }));
 
   res.json(chats);
