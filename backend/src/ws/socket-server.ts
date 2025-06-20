@@ -75,6 +75,8 @@ export function handleWebhookFromPlatform(platform: string, body: any) {
         sender: userName,
         content: text,
         timestamp: new Date().toISOString(),
+        notification: true,
+        lastMessage: text,
       },
     });
   }

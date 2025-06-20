@@ -10,7 +10,11 @@ import {
 import { sendMessageToClient } from "../core/message-bus";
 import { formatMessage } from "../utils/formatMessage";
 import { ChatPlatform } from "../chatStore";
-import { broadcastTo, handleWebhookFromPlatform } from "../ws/socket-server";
+import {
+  broadcastAll,
+  broadcastTo,
+  handleWebhookFromPlatform,
+} from "../ws/socket-server";
 
 const router = express.Router();
 
@@ -27,6 +31,7 @@ router.get("/chats", (req: Request, res: Response) => {
     updatedAt: chat.updatedAt,
     status: chat.status,
     notification: chat.notification,
+    lastMessage: chat.lastMessage,
   }));
 
   res.json(chats);
@@ -76,14 +81,34 @@ router.post("/chats/:chatId/reply", async (req: Request, res: Response) => {
       timestamp: new Date(),
     });
 
+    const chat = getChat(platform, chatId);
+
+    if (chat) {
+      broadcastAll({
+        type: "new_chat",
+        payload: {
+          chatId,
+          platform,
+          userName: chat.userName,
+          avatar: chat.avatar,
+          updatedAt: chat.updatedAt,
+          status: chat.status,
+          notification: chat.notification,
+          lastMessage: chat.lastMessage,
+        },
+      });
+    }
+
     await sendMessageToClient(platform, chatId, text);
     console.log("📤 [REPLY] Broadcasting operator reply:", {
       chatId,
       platform,
       sender: "operator",
       content: text,
+      timestamp: new Date(),
+      lastMessage: text,
     });
-    // 🆕 Обновляем фронт для preview
+
     broadcastTo(chatId, platform, {
       type: "new_message",
       payload: {
@@ -102,7 +127,6 @@ router.post("/chats/:chatId/reply", async (req: Request, res: Response) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 /**
  * POST /chats/:chatId/send
  * AI-режим: пользователь пишет → AI отвечает
@@ -127,13 +151,16 @@ router.post("/chats/:chatId/send", async (req: Request, res: Response) => {
       content: text,
       timestamp: new Date(),
     });
+
     console.log(
       `[MODE SERVER CHECK] chatId=${chatId}, platform=${platform}, mode=${mode}`
     );
+
     if (mode === "operator") {
       console.log("🛑 Operator mode active — AI won't respond.");
       return res.json({ success: true, reply: null });
     }
+
     // Имитация контекста
     const fakeCtx = {
       from: { first_name: chat.userName },
@@ -155,6 +182,24 @@ router.post("/chats/:chatId/send", async (req: Request, res: Response) => {
       content: response,
       timestamp: new Date(),
     });
+
+    // 🆕 Обновим список чатов для ChatList (реалтайм)
+    const updatedChat = getChat(platform, chatId);
+    if (updatedChat) {
+      broadcastAll({
+        type: "new_chat",
+        payload: {
+          chatId,
+          platform,
+          userName: updatedChat.userName,
+          avatar: updatedChat.avatar,
+          updatedAt: updatedChat.updatedAt,
+          status: updatedChat.status,
+          notification: updatedChat.notification,
+          lastMessage: updatedChat.lastMessage,
+        },
+      });
+    }
 
     await sendMessageToClient(platform, chatId, response);
 
