@@ -6,6 +6,18 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
 }
+export type ChatPlatform = "whatsapp" | "telegram" | "other";
+
+export interface ChatEntry {
+  platform: ChatPlatform;
+  chatId: string;
+  userName: string;
+  avatar?: string;
+  messages: ChatMessage[];
+  updatedAt: Date;
+  mode?: "operator" | "ai";
+  status: "online" | "offline" | "waiting";
+}
 
 export interface SessionData {
   scenario?: "repair" | "cartridge" | "purchase" | "ai_chat";

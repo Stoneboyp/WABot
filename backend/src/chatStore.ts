@@ -1,18 +1,5 @@
-import { ChatMessage } from "./types";
+import { ChatEntry, ChatMessage, ChatPlatform } from "./types";
 import { broadcastAll } from "./ws/socket-server";
-
-export type ChatPlatform = "whatsapp" | "telegram" | "other";
-
-export interface ChatEntry {
-  platform: ChatPlatform;
-  chatId: string;
-  userName: string;
-  avatar?: string;
-  messages: ChatMessage[];
-  updatedAt: Date;
-  mode?: "operator" | "ai";
-  status: "online" | "offline" | "waiting";
-}
 
 // 🧠 Используем составной ключ
 function makeKey(platform: ChatPlatform, chatId: string) {

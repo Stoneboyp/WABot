@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   List,
   ListItem,
@@ -10,12 +10,14 @@ import {
 } from "@mui/material";
 import { fetchChats } from "../../../services/api";
 import type { Chat } from "../../types";
+import { useChatContext } from "@/context/ChatContext";
 
 type ChatListProps = {
   onSelect: (chat: Chat) => void;
 };
 
 export const ChatList = ({ onSelect }: ChatListProps) => {
+  const { unreadMessages, setUnreadMessages } = useChatContext();
   const [chats, setChats] = useState<Chat[]>([]);
   const PORT = import.meta.env.PORT || 3000;
 
@@ -37,7 +39,6 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
 
       if (data.type === "new_chat") {
         const newChat = data.payload as Chat;
-
         setChats((prev) => {
           const exists = prev.some(
             (chat) =>
