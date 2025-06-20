@@ -1,6 +1,6 @@
 import { getAIResponse } from "../services/ai-service";
 import { getChat, saveMessage } from "../chatStore";
-import { broadcastTo } from "../ws/socket-server";
+import { broadcastAll, broadcastTo } from "../ws/socket-server";
 import { sendMessageToClient } from "./message-bus";
 
 interface HandleIncomingMessageOptions {
@@ -18,21 +18,18 @@ export async function handleIncomingMessage({
   text,
   history = [],
 }: HandleIncomingMessageOptions): Promise<void> {
+  const now = new Date();
+
+  // Сохраняем сообщение
   saveMessage(platform, chatId, userName, {
     role: "user",
     content: text,
-    timestamp: new Date(),
-  });
-  console.log(`[INCOMING] [${platform}] ${chatId} <- ${text}`);
-  broadcastTo(chatId, platform, {
-    type: "new_message",
-    payload: {
-      sender: "user",
-      content: text,
-      timestamp: new Date(),
-    },
+    timestamp: now,
   });
 
+  console.log(`[INCOMING] [${platform}] ${chatId} <- ${text}`);
+
+  // Устанавливаем уведомление
   const chat = getChat(platform, chatId);
   if (!chat) {
     console.warn(
@@ -40,7 +37,40 @@ export async function handleIncomingMessage({
     );
     return;
   }
-  if (chat?.mode === "operator") {
+
+  // Ставим флаг только для входящих от пользователя
+  chat.notification = true;
+  broadcastAll({
+    type: "new_chat",
+    payload: {
+      platform,
+      chatId,
+      userName: chat.userName,
+      updatedAt: chat.updatedAt,
+      status: chat.status,
+      mode: chat.mode,
+      avatar: chat.avatar,
+      notification: true,
+      messages: chat.messages.slice(-5),
+    },
+  });
+
+  console.log("📤 Broadcast with notification:", {
+    chatId,
+    platform,
+    notification: chat.notification,
+  });
+  // Шлём обновление на фронт
+  broadcastTo(chatId, platform, {
+    type: "new_message",
+    payload: {
+      sender: "user",
+      content: text,
+      timestamp: now,
+    },
+  });
+
+  if (chat.mode === "operator") {
     console.log(`🛑 Chat ${chatId} в режиме operator — AI не отвечает`);
     return;
   }
@@ -56,6 +86,13 @@ export async function handleIncomingMessage({
       text,
       `Клиент: ${userName}`
     );
+
+    // Сохраняем ответ AI
+    saveMessage(platform, chatId, "Bot", {
+      role: "assistant",
+      content: response,
+      timestamp: new Date(),
+    });
 
     await sendMessageToClient(platform, chatId, response);
 

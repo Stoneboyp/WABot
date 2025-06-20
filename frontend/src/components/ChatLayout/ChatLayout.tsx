@@ -1,17 +1,25 @@
 import { Box } from "@mui/material";
 import { ChatList } from "@components/ChatList/ChatList";
 import { ChatWindow } from "@components/ChatWindow/ChatWindow";
-import { useChatContext } from "../../context/ChatContext";
 import { Typography } from "@mui/material";
+import { useChatContext } from "../../context/ChatContext";
+import { clearNotification } from "../../../services/api";
+import type { Chat } from "@/types";
 
 export const ChatLayout = () => {
-  const { selectedChat, setSelectedChat } = useChatContext();
+  const { selectedChat, setSelectedChat, clearChatNotification } =
+    useChatContext();
+
+  const handleSelectChat = async (chat: Chat) => {
+    await clearChatNotification(chat.chatId, chat.platform);
+    setSelectedChat(chat);
+  };
 
   return (
     <Box display="flex" height="100vh">
       {/* Левая колонка со списком чатов */}
       <Box width="320px" borderRight="1px solid #ccc" overflow="auto">
-        <ChatList onSelect={(chat) => setSelectedChat(chat)} />
+        <ChatList onSelect={handleSelectChat} />
       </Box>
 
       {/* Правая часть — окно чата или заглушка */}

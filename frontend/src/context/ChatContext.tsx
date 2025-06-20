@@ -1,8 +1,11 @@
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 import type { Chat, Message } from "../types";
+import { clearNotification } from "../../services/api";
 
 type ChatContextType = {
+  chats: Chat[];
+  setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
   selectedChat: Chat | null;
   setSelectedChat: React.Dispatch<React.SetStateAction<Chat | null>>;
   isOperatorMode: boolean;
@@ -13,11 +16,13 @@ type ChatContextType = {
   setUnreadMessages: React.Dispatch<
     React.SetStateAction<Record<string, number>>
   >;
+  clearChatNotification: (chatId: string, platform: string) => Promise<void>;
 };
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
+  const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [isOperatorMode, setIsOperatorMode] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -25,9 +30,28 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     {}
   );
 
+  const clearChatNotification = async (chatId: string, platform: string) => {
+    console.log(chats);
+
+    try {
+      await clearNotification(chatId, platform);
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.chatId === chatId && chat.platform === platform
+            ? { ...chat, notification: false }
+            : chat
+        )
+      );
+    } catch (error) {
+      console.error("❌ Failed to clear notification", error);
+    }
+  };
+
   return (
     <ChatContext.Provider
       value={{
+        chats,
+        setChats,
         selectedChat,
         setSelectedChat,
         isOperatorMode,
@@ -36,6 +60,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         setMessages,
         unreadMessages,
         setUnreadMessages,
+        clearChatNotification,
       }}
     >
       {children}

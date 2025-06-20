@@ -1,7 +1,6 @@
 import { ChatEntry, ChatMessage, ChatPlatform } from "./types";
 import { broadcastAll } from "./ws/socket-server";
 
-// 🧠 Используем составной ключ
 function makeKey(platform: ChatPlatform, chatId: string) {
   return `${platform}:${chatId}`;
 }
@@ -29,8 +28,8 @@ export function saveMessage(
       messages: [message],
       updatedAt: new Date(),
       status: "online",
-      mode: "ai", // по умолчанию
-      notificationSent: false,
+      mode: "ai",
+      notification: false,
     };
 
     chatStore.set(key, newChat);

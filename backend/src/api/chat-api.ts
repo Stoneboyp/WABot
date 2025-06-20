@@ -1,6 +1,12 @@
 import express, { Request, Response } from "express";
 import { getAIResponse } from "../services/ai-service";
-import { saveMessage, getChat, getAllChats, setChatMode } from "../chatStore";
+import {
+  saveMessage,
+  getChat,
+  getAllChats,
+  setChatMode,
+  chatStore,
+} from "../chatStore";
 import { sendMessageToClient } from "../core/message-bus";
 import { formatMessage } from "../utils/formatMessage";
 import { ChatPlatform } from "../chatStore";
@@ -20,7 +26,7 @@ router.get("/chats", (req: Request, res: Response) => {
     avatar: chat.avatar,
     updatedAt: chat.updatedAt,
     status: chat.status,
-    notification: chat.notificationSent,
+    notification: chat.notification,
   }));
 
   res.json(chats);
@@ -157,6 +163,20 @@ router.post("/chats/:chatId/mode", (req: Request, res: Response) => {
   );
   res.json({ success: true });
 });
+
+router.post(
+  "/chats/:platform/:chatId/clear-notification",
+  //@ts-expect-error
+  (req: Request, res: Response) => {
+    const { platform, chatId } = req.params;
+    const chat = chatStore.get(`${platform}:${chatId}`);
+    if (chat) {
+      chat.notification = false;
+      return res.status(200).json({ success: true });
+    }
+    res.status(404).json({ error: "Chat not found" });
+  }
+);
 
 export default router;
 

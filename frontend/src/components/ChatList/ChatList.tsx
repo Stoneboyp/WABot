@@ -18,9 +18,9 @@ type ChatListProps = {
 };
 
 export const ChatList = ({ onSelect }: ChatListProps) => {
-  const [chats, setChats] = useState<Chat[]>([]);
+  const { chats, setChats } = useChatContext();
   const PORT = import.meta.env.PORT || 3000;
-
+  console.log("💬 chats:", chats);
   useEffect(() => {
     const loadChats = async () => {
       const data = await fetchChats();
@@ -104,7 +104,7 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
             onClick={() => onSelect(chat)}
           >
             <ListItemAvatar>
-              <Badge color="error" variant="dot" invisible={chat.notification}>
+              <Badge color="error" variant="dot" invisible={!chat.notification}>
                 <Avatar src={chat.avatar} />
               </Badge>
             </ListItemAvatar>

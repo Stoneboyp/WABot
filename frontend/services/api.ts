@@ -47,3 +47,10 @@ export const updateChatMode = async (
     mode,
   });
 };
+
+export async function clearNotification(chatId: string, platform: string) {
+  const response = await api.post(
+    `/chats/${platform}/${chatId}/clear-notification`
+  );
+  if (!response) throw new Error("Failed to clear notification");
+}
