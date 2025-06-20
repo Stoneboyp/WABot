@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   List,
   ListItem,
@@ -7,6 +7,7 @@ import {
   ListItemText,
   Typography,
   Box,
+  Badge,
 } from "@mui/material";
 import { fetchChats } from "../../../services/api";
 import type { Chat } from "../../types";
@@ -17,7 +18,6 @@ type ChatListProps = {
 };
 
 export const ChatList = ({ onSelect }: ChatListProps) => {
-  const { unreadMessages, setUnreadMessages } = useChatContext();
   const [chats, setChats] = useState<Chat[]>([]);
   const PORT = import.meta.env.PORT || 3000;
 
@@ -39,23 +39,38 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
 
       if (data.type === "new_chat") {
         const newChat = data.payload as Chat;
+
         setChats((prev) => {
           const exists = prev.some(
             (chat) =>
               chat.chatId === newChat.chatId &&
               chat.platform === newChat.platform
           );
-          return exists ? prev : [...prev, newChat];
+
+          if (exists) {
+            return prev.map((chat) =>
+              chat.chatId === newChat.chatId &&
+              chat.platform === newChat.platform
+                ? { ...chat, ...newChat }
+                : chat
+            );
+          } else {
+            return [...prev, newChat];
+          }
         });
       }
 
       if (data.type === "new_message") {
-        const { chatId } = data.payload;
+        const { chatId, platform } = data.payload;
 
         setChats((prev) =>
           prev.map((chat) =>
-            chat.chatId === chatId
-              ? { ...chat, updatedAt: new Date().toISOString() }
+            chat.chatId === chatId && chat.platform === platform
+              ? {
+                  ...chat,
+                  updatedAt: new Date().toISOString(),
+                  notification: true,
+                }
               : chat
           )
         );
@@ -89,7 +104,9 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
             onClick={() => onSelect(chat)}
           >
             <ListItemAvatar>
-              <Avatar src={chat.avatar} />
+              <Badge color="error" variant="dot" invisible={chat.notification}>
+                <Avatar src={chat.avatar} />
+              </Badge>
             </ListItemAvatar>
             <ListItemText
               primary={chat.userName}

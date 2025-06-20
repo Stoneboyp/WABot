@@ -13,4 +13,5 @@ export type Chat = {
   avatar?: string;
   updatedAt: string;
   status: "online" | "offline" | "waiting";
+  notification: boolean;
 };
