@@ -9,6 +9,10 @@ type ChatContextType = {
   setIsOperatorMode: React.Dispatch<React.SetStateAction<boolean>>;
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  unreadMessages: Record<string, number>;
+  setUnreadMessages: React.Dispatch<
+    React.SetStateAction<Record<string, number>>
+  >;
 };
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -17,6 +21,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [isOperatorMode, setIsOperatorMode] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [unreadMessages, setUnreadMessages] = useState<Record<string, number>>(
+    {}
+  );
 
   return (
     <ChatContext.Provider
@@ -27,6 +34,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         setIsOperatorMode,
         messages,
         setMessages,
+        unreadMessages,
+        setUnreadMessages,
       }}
     >
       {children}
