@@ -51,6 +51,7 @@ export async function handleIncomingMessage({
       mode: chat.mode,
       avatar: chat.avatar,
       notification: true,
+      lastMessage: chat.lastMessage,
       messages: chat.messages.slice(-5),
     },
   });
@@ -102,6 +103,7 @@ export async function handleIncomingMessage({
         sender: "bot",
         content: response,
         timestamp: new Date(),
+        lastMessage: response,
       },
     });
   } catch (err) {

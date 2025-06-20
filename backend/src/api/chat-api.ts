@@ -10,7 +10,7 @@ import {
 import { sendMessageToClient } from "../core/message-bus";
 import { formatMessage } from "../utils/formatMessage";
 import { ChatPlatform } from "../chatStore";
-import { handleWebhookFromPlatform } from "../ws/socket-server";
+import { broadcastTo, handleWebhookFromPlatform } from "../ws/socket-server";
 
 const router = express.Router();
 
@@ -77,6 +77,24 @@ router.post("/chats/:chatId/reply", async (req: Request, res: Response) => {
     });
 
     await sendMessageToClient(platform, chatId, text);
+    console.log("📤 [REPLY] Broadcasting operator reply:", {
+      chatId,
+      platform,
+      sender: "operator",
+      content: text,
+    });
+    // 🆕 Обновляем фронт для preview
+    broadcastTo(chatId, platform, {
+      type: "new_message",
+      payload: {
+        sender: "operator",
+        content: text,
+        timestamp: new Date(),
+        lastMessage: text,
+      },
+    });
+
+    console.log("✅ [REPLY] Broadcast sent");
 
     res.json({ success: true });
   } catch (err) {

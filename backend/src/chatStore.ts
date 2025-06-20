@@ -1,3 +1,4 @@
+// 📁 src/chatStore.ts
 import { ChatEntry, ChatMessage, ChatPlatform } from "./types";
 import { broadcastAll } from "./ws/socket-server";
 
@@ -20,6 +21,7 @@ export function saveMessage(
     existing.messages.push(message);
     existing.updatedAt = new Date();
     existing.status = "online";
+    existing.lastMessage = message.content;
   } else {
     const newChat: ChatEntry = {
       platform,
@@ -30,6 +32,7 @@ export function saveMessage(
       status: "online",
       mode: "ai",
       notification: false,
+      lastMessage: message.content,
     };
 
     chatStore.set(key, newChat);

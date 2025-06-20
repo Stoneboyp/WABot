@@ -41,15 +41,6 @@ export const ChatWindow = ({
 
       if (isOperatorMode) {
         await sendOperatorReply(chat.chatId, text, chat.platform);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now(),
-            text,
-            sender: "operator",
-            timestamp: now,
-          },
-        ]);
       } else {
         const mode = isOperatorMode ? "operator" : "ai";
         const response = await sendMessage(
@@ -82,15 +73,27 @@ export const ChatWindow = ({
   useWebSocket(chat.chatId, chat.platform, (data) => {
     if (data.type === "new_message") {
       const msg = data.payload;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          text: msg.content,
-          sender: msg.sender,
-          timestamp: msg.timestamp,
-        },
-      ]);
+
+      setMessages((prev) => {
+        const alreadyExists = prev.some(
+          (m) =>
+            m.timestamp === msg.timestamp &&
+            m.text === msg.content &&
+            m.sender === msg.sender
+        );
+
+        if (alreadyExists) return prev;
+
+        return [
+          ...prev,
+          {
+            id: Date.now(),
+            text: msg.content,
+            sender: msg.sender,
+            timestamp: msg.timestamp,
+          },
+        ];
+      });
     }
   });
 

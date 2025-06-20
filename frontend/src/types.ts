@@ -14,4 +14,5 @@ export type Chat = {
   updatedAt: string;
   status: "online" | "offline" | "waiting";
   notification: boolean;
+  lastMessage?: string;
 };

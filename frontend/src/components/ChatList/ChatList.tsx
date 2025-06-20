@@ -61,7 +61,7 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
       }
 
       if (data.type === "new_message") {
-        const { chatId, platform } = data.payload;
+        const { chatId, platform, content, lastMessage } = data.payload;
 
         setChats((prev) =>
           prev.map((chat) =>
@@ -69,7 +69,8 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
               ? {
                   ...chat,
                   updatedAt: new Date().toISOString(),
-                  notification: true,
+                  notification: data.payload.sender === "user",
+                  lastMessage: lastMessage || content,
                 }
               : chat
           )
@@ -110,7 +111,16 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
             </ListItemAvatar>
             <ListItemText
               primary={chat.userName}
-              secondary={new Date(chat.updatedAt).toLocaleTimeString()}
+              secondary={
+                <>
+                  <Typography variant="body2" color="textSecondary" noWrap>
+                    {chat.lastMessage || "Нет сообщений"}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {new Date(chat.updatedAt).toLocaleTimeString()}
+                  </Typography>
+                </>
+              }
             />
           </ListItem>
         ))}
