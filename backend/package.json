@@ -3,13 +3,14 @@
     "start": "node dist/server.js",
     "build": "tsc",
     "dev": "nodemon",
-    "dev:rebuild": "rm -r dist && npm run build"
+    "dev:rebuild": "rimraf dist && npm run build"
   },
   "devDependencies": {
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
     "@types/node": "^22.15.24",
     "@types/ws": "^8.18.1",
+    "rimraf": "^6.0.1",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },
