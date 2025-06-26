@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 import type { Chat, Message } from "../types";
 import { clearNotification } from "../../services/api";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 type ChatContextType = {
   chats: Chat[];
@@ -29,6 +30,26 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [unreadMessages, setUnreadMessages] = useState<Record<string, number>>(
     {}
   );
+
+  useWebSocket("*", "*", (data) => {
+    if (data.type === "new_chat") {
+      const updated = data.payload;
+      setChats((prev) => {
+        const exists = prev.find(
+          (c) => c.chatId === updated.chatId && c.platform === updated.platform
+        );
+        if (exists) {
+          return prev.map((c) =>
+            c.chatId === updated.chatId && c.platform === updated.platform
+              ? { ...c, ...updated }
+              : c
+          );
+        } else {
+          return [...prev, updated];
+        }
+      });
+    }
+  });
 
   const clearChatNotification = async (chatId: string, platform: string) => {
     console.log(chats);

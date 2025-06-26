@@ -7,11 +7,12 @@ export function useWebSocket(
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    if (!chatId || !platform) return;
+    const isGlobal = chatId === "*" && platform === "*";
+    const url = isGlobal
+      ? `ws://localhost:3000/`
+      : `ws://localhost:3000/?chatId=${chatId}&platform=${platform}`;
 
-    const ws = new WebSocket(
-      `ws://localhost:3000/?chatId=${chatId}&platform=${platform}`
-    );
+    const ws = new WebSocket(url);
     socketRef.current = ws;
 
     ws.onopen = () => {
