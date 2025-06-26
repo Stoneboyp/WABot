@@ -33,7 +33,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   useWebSocket("*", "*", (data) => {
     if (data.type === "new_chat") {
-      console.log("🧠 [ChatProvider] new_chat update:", data.payload);
       const updated = data.payload;
       setChats((prev) => {
         const exists = prev.find(

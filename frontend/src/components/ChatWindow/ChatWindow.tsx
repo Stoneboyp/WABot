@@ -19,61 +19,85 @@ export const ChatWindow = ({
     userName: string;
   };
 }) => {
-  const { isOperatorMode, setIsOperatorMode, messages, setMessages } =
-    useChatContext();
+  const {
+    isOperatorMode,
+    setIsOperatorMode,
+    messages,
+    setMessages,
+    chats,
+    setChats,
+  } = useChatContext();
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  // ⬇️ Загрузка сообщений при смене чата
   useEffect(() => {
     const loadMessages = async () => {
       const data = await fetchMessages(chat.chatId, chat.platform);
       setMessages(data);
     };
     loadMessages();
-  }, [chat.chatId]);
+  }, [chat.chatId, chat.platform]);
 
+  // ⬇️ Скролл к последнему сообщению
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-  const handleSend = async (text: string) => {
-    console.log(`[SEND] Mode: ${isOperatorMode ? "operator" : "AI"}`);
-    try {
-      const now = new Date().toISOString();
 
+  // ⬇️ Отправка сообщений
+  const handleSend = async (text: string) => {
+    const now = new Date().toISOString();
+
+    try {
       if (isOperatorMode) {
         await sendOperatorReply(chat.chatId, text, chat.platform);
+        const newMsg = {
+          id: Date.now(),
+          text,
+          sender: "operator",
+          timestamp: now,
+        };
+        setMessages((prev) => [...prev, newMsg]);
+        syncChatMessages(newMsg);
       } else {
-        const mode = isOperatorMode ? "operator" : "ai";
         const response = await sendMessage(
           chat.chatId,
           text,
           chat.platform,
-          mode
+          "ai"
         );
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now(),
-            text,
-            sender: "user",
-            timestamp: now,
-          },
-          {
-            id: Date.now() + 1,
-            text: response.reply,
-            sender: "bot",
-            timestamp: now,
-          },
-        ]);
+        const userMsg = {
+          id: Date.now(),
+          text,
+          sender: "user",
+          timestamp: now,
+        };
+        const botMsg = {
+          id: Date.now() + 1,
+          text: response.reply,
+          sender: "bot",
+          timestamp: now,
+        };
+        setMessages((prev) => [...prev, userMsg, botMsg]);
+        syncChatMessages(botMsg);
       }
     } catch (error) {
       console.error("Send error:", error);
     }
   };
 
+  // ⬇️ WebSocket подписка
   useWebSocket(chat.chatId, chat.platform, (data) => {
     if (data.type === "new_message") {
       const msg = data.payload;
+      const newMsg = {
+        id: Date.now(),
+        text: msg.content,
+        sender: msg.sender,
+        timestamp: msg.timestamp,
+      };
 
+      // Добавляем сообщение в messages, если чат активен
       setMessages((prev) => {
         const alreadyExists = prev.some(
           (m) =>
@@ -81,21 +105,37 @@ export const ChatWindow = ({
             m.text === msg.content &&
             m.sender === msg.sender
         );
-
         if (alreadyExists) return prev;
-
-        return [
-          ...prev,
-          {
-            id: Date.now(),
-            text: msg.content,
-            sender: msg.sender,
-            timestamp: msg.timestamp,
-          },
-        ];
+        return [...prev, newMsg];
       });
+
+      syncChatMessages(newMsg);
     }
   });
+
+  // 🔄 Синхронизировать сообщения с chats
+  const syncChatMessages = (lastMsg: {
+    text: string;
+    timestamp: string;
+    sender: string;
+    id: number;
+  }) => {
+    setChats((prev) =>
+      prev.map((c) =>
+        c.chatId === chat.chatId && c.platform === chat.platform
+          ? {
+              ...c,
+              lastMessage: lastMsg.text,
+              updatedAt: lastMsg.timestamp,
+              notification: false,
+              // При желании можно хранить messages в chat
+              // messages: [...(c.messages || []), lastMsg],
+            }
+          : c
+      )
+    );
+  };
+  console.log(chats, messages);
 
   return (
     <Paper
@@ -112,7 +152,6 @@ export const ChatWindow = ({
           onClick={async () => {
             const newMode = isOperatorMode ? "ai" : "operator";
             setIsOperatorMode(!isOperatorMode);
-
             try {
               await updateChatMode(chat.chatId, chat.platform, newMode);
               console.log(`[MODE] switched to ${newMode}`);

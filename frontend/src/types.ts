@@ -8,11 +8,16 @@ export interface Message {
 }
 export type Chat = {
   chatId: string;
-  platform: "telegram" | "whatsapp" | "other";
+  platform: string;
   userName: string;
   avatar?: string;
   updatedAt: string;
-  status: "online" | "offline" | "waiting";
-  notification: boolean;
   lastMessage?: string;
+  notification?: boolean;
+  messages?: {
+    id: number;
+    text: string;
+    sender: string;
+    timestamp: string;
+  }[];
 };

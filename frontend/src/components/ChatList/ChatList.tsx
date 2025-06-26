@@ -18,16 +18,18 @@ type ChatListProps = {
 };
 
 export const ChatList = ({ onSelect }: ChatListProps) => {
-  const { chats, setChats } = useChatContext();
+  const { chats, setChats, messages } = useChatContext();
   const PORT = import.meta.env.PORT || 3000;
-  console.log("💬 chats:", chats);
+  console.log("💬 chats:", chats, "messages", messages);
   useEffect(() => {
     const loadChats = async () => {
       const data = await fetchChats();
+      console.log("data", data);
+
       setChats(data);
     };
     loadChats();
-  }, []);
+  }, [setChats]);
 
   useEffect(() => {
     const ws = new WebSocket(
@@ -36,7 +38,21 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-
+      if (data.type === "chat_updated") {
+        setChats((prev) =>
+          prev.map((chat) =>
+            chat.chatId === data.payload.chatId &&
+            chat.platform === data.payload.platform
+              ? {
+                  ...chat,
+                  lastMessage: data.payload.lastMessage,
+                  updatedAt: data.payload.updatedAt,
+                  notification: data.payload.notification,
+                }
+              : chat
+          )
+        );
+      }
       if (data.type === "new_chat") {
         const newChat = data.payload as Chat;
 
@@ -59,9 +75,9 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
           }
         });
       }
-
       if (data.type === "new_message") {
         const { chatId, platform, content, lastMessage } = data.payload;
+        console.log(chats);
 
         setChats((prev) =>
           prev.map((chat) =>

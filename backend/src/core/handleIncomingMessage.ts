@@ -20,7 +20,7 @@ export async function handleIncomingMessage({
 }: HandleIncomingMessageOptions): Promise<void> {
   const now = new Date();
 
-  // Сохраняем сообщение
+  // 1. Сохраняем сообщение
   saveMessage(platform, chatId, userName, {
     role: "user",
     content: text,
@@ -29,7 +29,7 @@ export async function handleIncomingMessage({
 
   console.log(`[INCOMING] [${platform}] ${chatId} <- ${text}`);
 
-  // Устанавливаем уведомление
+  // 2. Получаем обновленный чат
   const chat = getChat(platform, chatId);
   if (!chat) {
     console.warn(
@@ -38,36 +38,34 @@ export async function handleIncomingMessage({
     return;
   }
 
-  // Ставим флаг только для входящих от пользователя
+  // 3. Обновляем lastMessage и notification
+  chat.lastMessage = text;
+  chat.updatedAt = new Date();
   chat.notification = true;
-  broadcastAll({
-    type: "new_chat",
+
+  // 4. Отправляем специальное обновление для списка чатов
+  broadcastTo("admin", "admin", {
+    type: "chat_updated",
     payload: {
-      platform,
       chatId,
-      userName: chat.userName,
-      updatedAt: chat.updatedAt,
-      status: chat.status,
-      mode: chat.mode,
-      avatar: chat.avatar,
+      platform,
+      lastMessage: text,
+      updatedAt: now.toISOString(),
       notification: true,
-      lastMessage: chat.lastMessage,
-      messages: chat.messages.slice(-5),
+      // Дополнительные поля при необходимости
+      userName: chat.userName,
+      avatar: chat.avatar,
     },
   });
 
-  console.log("📤 Broadcast with notification:", {
-    chatId,
-    platform,
-    notification: chat.notification,
-  });
-  // Шлём обновление на фронт
+  // 5. Отправляем полное сообщение в чат (если открыт)
   broadcastTo(chatId, platform, {
     type: "new_message",
     payload: {
       sender: "user",
       content: text,
-      timestamp: now,
+      timestamp: now.toISOString(),
+      lastMessage: text,
     },
   });
 
@@ -95,8 +93,24 @@ export async function handleIncomingMessage({
       timestamp: new Date(),
     });
 
-    await sendMessageToClient(platform, chatId, response);
+    // Обновляем lastMessage для ответа бота
+    chat.lastMessage = response;
+    chat.updatedAt = new Date();
 
+    // Отправляем обновление для списка чатов
+    broadcastTo("admin", "admin", {
+      type: "chat_updated",
+      payload: {
+        chatId,
+        platform,
+        lastMessage: response,
+        updatedAt: new Date(),
+        notification: true,
+      },
+    });
+
+    // Отправляем ответ в чат
+    await sendMessageToClient(platform, chatId, response);
     broadcastTo(chatId, platform, {
       type: "new_message",
       payload: {
