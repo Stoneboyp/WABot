@@ -203,6 +203,17 @@ router.post("/chats/:chatId/send", async (req: Request, res: Response) => {
 
     await sendMessageToClient(platform, chatId, response);
 
+    broadcastTo(chatId, platform, {
+      type: "new_message",
+      payload: {
+        chatId,
+        platform,
+        sender: "bot",
+        content: response,
+        timestamp: new Date().toISOString(),
+        lastMessage: response,
+      },
+    });
     res.json({ success: true, reply: response });
   } catch (err) {
     console.error(err);

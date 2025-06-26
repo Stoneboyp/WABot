@@ -32,6 +32,9 @@ export function setupWebSocket(server: http.Server) {
 
     clients.set(key, ws);
     console.log(`🔌 WebSocket client connected: ${key}`);
+    ws.send(
+      JSON.stringify({ type: "welcome", message: "WebSocket connected" })
+    );
 
     ws.on("close", () => {
       clients.delete(key);

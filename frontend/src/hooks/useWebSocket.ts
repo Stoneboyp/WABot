@@ -11,7 +11,6 @@ export function useWebSocket(
     const url = isGlobal
       ? `ws://localhost:3000/`
       : `ws://localhost:3000/?chatId=${chatId}&platform=${platform}`;
-
     const ws = new WebSocket(url);
     socketRef.current = ws;
 
@@ -20,6 +19,7 @@ export function useWebSocket(
     };
 
     ws.onmessage = (event) => {
+      console.log("🧪 RAW:", event.data);
       try {
         const data = JSON.parse(event.data);
         console.log("💬 [WS] incoming:", data);
