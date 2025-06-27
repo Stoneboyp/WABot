@@ -37,9 +37,16 @@ export function findAnswerInKB(
   const fuse = new Fuse(kb, {
     keys: ["question"],
     threshold: 0.4,
-    includeScore: false,
+    includeScore: true,
   });
 
   const result = fuse.search(userInput);
-  return result.length > 0 ? result[0].item.answer : null;
+  if (result.length > 0 && result[0].score! < 0.4) {
+    console.log(
+      `🔍 Совпадение с: "${result[0].item.question}", score=${result[0].score}`
+    );
+    return result[0].item.answer;
+  }
+
+  return null;
 }

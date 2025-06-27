@@ -28,10 +28,22 @@ export async function getAIResponse(
 ): Promise<string> {
   ctx.session.chatHistory ||= [];
 
+  // Сначала всегда проверяем базу знаний
   let kbAnswer: string | null = null;
   try {
     const kb = await loadKnowledgeBase();
     kbAnswer = findAnswerInKB(kb, prompt);
+
+    // Если нашли точный ответ в базе - возвращаем его
+    if (kbAnswer) {
+      ctx.session.chatHistory.push(
+        { role: "user", content: prompt, timestamp: new Date() },
+        { role: "assistant", content: kbAnswer, timestamp: new Date() }
+      );
+      ctx.session.chatHistory = ctx.session.chatHistory.slice(-10);
+      console.log("📚 Ответ из базы знаний:", kbAnswer);
+      return kbAnswer;
+    }
   } catch (err) {
     console.warn(
       "⚠️ Не удалось загрузить базу знаний:",
@@ -39,17 +51,7 @@ export async function getAIResponse(
     );
   }
 
-  // ✅ 1. Если нашли — отвечаем
-  if (kbAnswer) {
-    ctx.session.chatHistory.push(
-      { role: "user", content: prompt, timestamp: new Date() },
-      { role: "assistant", content: kbAnswer, timestamp: new Date() }
-    );
-    ctx.session.chatHistory = ctx.session.chatHistory.slice(-10);
-    console.log("📚 Ответ из базы знаний:", kbAnswer);
-    return kbAnswer;
-  }
-
+  // Только если в базе нет ответа - применяем фильтры
   const pricingKeywords = [
     "цена",
     "стоимость",
@@ -59,6 +61,7 @@ export async function getAIResponse(
     "прайс",
     "сколько будет",
   ];
+
   const isPriceRelated = pricingKeywords.some((kw) =>
     prompt.toLowerCase().includes(kw)
   );
