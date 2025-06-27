@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 import { parse } from "csv-parse/sync";
 import dotenv from "dotenv";
+import Fuse from "fuse.js";
 
 dotenv.config();
 
@@ -28,13 +29,17 @@ export async function loadKnowledgeBase(): Promise<KnowledgeBaseEntry[]> {
 /**
  * Ищет точное совпадение вопроса (без регистра)
  */
+
 export function findAnswerInKB(
   kb: KnowledgeBaseEntry[],
   userInput: string
 ): string | null {
-  const lowerInput = userInput.toLowerCase();
-  const found = kb.find((entry) =>
-    lowerInput.includes(entry.question.toLowerCase())
-  );
-  return found?.answer || null;
+  const fuse = new Fuse(kb, {
+    keys: ["question"],
+    threshold: 0.4,
+    includeScore: false,
+  });
+
+  const result = fuse.search(userInput);
+  return result.length > 0 ? result[0].item.answer : null;
 }

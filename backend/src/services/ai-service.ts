@@ -27,8 +27,8 @@ export async function getAIResponse(
   context = ""
 ): Promise<string> {
   ctx.session.chatHistory ||= [];
-  let kbAnswer: string | null = null;
 
+  let kbAnswer: string | null = null;
   try {
     const kb = await loadKnowledgeBase();
     kbAnswer = findAnswerInKB(kb, prompt);
@@ -38,6 +38,8 @@ export async function getAIResponse(
       (err as Error).message
     );
   }
+
+  // ✅ 1. Если нашли — отвечаем
   if (kbAnswer) {
     ctx.session.chatHistory.push(
       { role: "user", content: prompt, timestamp: new Date() },
@@ -46,6 +48,23 @@ export async function getAIResponse(
     ctx.session.chatHistory = ctx.session.chatHistory.slice(-10);
     console.log("📚 Ответ из базы знаний:", kbAnswer);
     return kbAnswer;
+  }
+
+  const pricingKeywords = [
+    "цена",
+    "стоимость",
+    "сколько стоит",
+    "по чем",
+    "расценка",
+    "прайс",
+    "сколько будет",
+  ];
+  const isPriceRelated = pricingKeywords.some((kw) =>
+    prompt.toLowerCase().includes(kw)
+  );
+
+  if (isPriceRelated) {
+    return "Извините, я не могу точно ответить на вопрос о стоимости. Лучше уточнить у нашего оператора.";
   }
 
   const systemPrompt = `
@@ -60,7 +79,7 @@ export async function getAIResponse(
 Правила:
 1. Сначала ищи ответ в базе знаний (таблица), не выдумывай ничего от себя.
 2. Если ответа нет — используй общие знания и аккуратно предположи, что может подойти.
-3. Не придумывай цену, адрес или условия, если их нет в базе.
+3. Не придумывай цену, адрес или условия, или услуги если их нет в базе.
 4. Если вопрос не по твоей теме — деликатно откажи.
 5. Общайся по-человечески, но профессионально. Клиенты — не технические специалисты, объясняй просто и понятно.
 `;
