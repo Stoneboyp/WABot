@@ -6,6 +6,7 @@ import Groq from "groq-sdk";
 import { MyContext } from "../types";
 import { ChatCompletionMessageParam as OpenAIMessage } from "openai/resources/chat";
 import { ChatCompletionMessageParam as GroqMessage } from "groq-sdk/resources/chat/completions";
+import { loadKnowledgeBase, findAnswerInKB } from "../utils/knowledgeBase";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -26,8 +27,43 @@ export async function getAIResponse(
   context = ""
 ): Promise<string> {
   ctx.session.chatHistory ||= [];
+  let kbAnswer: string | null = null;
 
-  const systemPrompt = `Ты — AI-помощник в чате техподдержки. Общайся вежливо, задавай уточняющие вопросы при необходимости.`;
+  try {
+    const kb = await loadKnowledgeBase();
+    kbAnswer = findAnswerInKB(kb, prompt);
+  } catch (err) {
+    console.warn(
+      "⚠️ Не удалось загрузить базу знаний:",
+      (err as Error).message
+    );
+  }
+  if (kbAnswer) {
+    ctx.session.chatHistory.push(
+      { role: "user", content: prompt, timestamp: new Date() },
+      { role: "assistant", content: kbAnswer, timestamp: new Date() }
+    );
+    ctx.session.chatHistory = ctx.session.chatHistory.slice(-10);
+    console.log("📚 Ответ из базы знаний:", kbAnswer);
+    return kbAnswer;
+  }
+
+  const systemPrompt = `
+Ты — опытный AI-консультант компании Integra Business, специализирующейся на ремонте оргтехники, ноутбуков, а также заправке и восстановлении картриджей.
+
+Твоя задача — вежливо и эффективно помогать клиенту:
+- подобрать нужную услугу,
+- уточнить стоимость (если она есть в базе знаний),
+- объяснить, как проходит выезд, оплата, диагностика,
+- подсказать, как оставить заявку или получить помощь.
+
+Правила:
+1. Сначала ищи ответ в базе знаний (таблица), не выдумывай ничего от себя.
+2. Если ответа нет — используй общие знания и аккуратно предположи, что может подойти.
+3. Не придумывай цену, адрес или условия, если их нет в базе.
+4. Если вопрос не по твоей теме — деликатно откажи.
+5. Общайся по-человечески, но профессионально. Клиенты — не технические специалисты, объясняй просто и понятно.
+`;
 
   const openaiMessages: OpenAIMessage[] = [
     { role: "system", content: systemPrompt + "\n" + context },
