@@ -43,7 +43,7 @@ export function findAnswerInKB(
 ): string | null {
   const normalizedInput = normalize(userInput);
 
-  // 1. Точное совпадение (посимвольно, после нормализации)
+  // 1. Exact match по question
   const exactMatch = kb.find(
     (entry) => normalize(entry.question) === normalizedInput
   );
@@ -51,10 +51,17 @@ export function findAnswerInKB(
     console.log("🎯 Точное совпадение:", exactMatch.question);
     return exactMatch.answer;
   }
-
-  // 2. Fuzzy-поиск
+  // 2. Exact match по short
+  const exactShortMatch = kb.find(
+    (entry) => normalize(entry.short) === normalizedInput
+  );
+  if (exactShortMatch) {
+    console.log("🎯 Exact match по short:", exactShortMatch.short);
+    return exactShortMatch.answer;
+  }
+  // 3. Fuzzy по question
   const fuse = new Fuse(kb, {
-    keys: ["question", "short"],
+    keys: ["question"],
     threshold: 0.4,
     ignoreLocation: true,
   });
