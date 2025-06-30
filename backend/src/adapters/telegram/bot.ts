@@ -1,12 +1,14 @@
-// telegram/bot.ts
 import dotenv from "dotenv";
 dotenv.config();
 
-import { Bot, session } from "grammy";
-import { MyContext, SessionData } from "../../types";
+import { Bot, Context, session } from "grammy";
+import { SessionFlavor } from "grammy";
+import { SessionData } from "../../types";
 import { handleIncomingMessage } from "../../core/handleIncomingMessage";
 
-export const bot = new Bot<MyContext>(process.env.TG_TOKEN!);
+type MyGrammyContext = Context & SessionFlavor<SessionData>;
+
+export const bot = new Bot<MyGrammyContext>(process.env.TG_TOKEN!);
 
 bot.use(
   session({
@@ -16,7 +18,7 @@ bot.use(
   })
 );
 
-bot.on("message:text", async (ctx: MyContext) => {
+bot.on("message:text", async (ctx) => {
   if (!ctx.message?.text || !ctx.chat) return;
 
   const message = ctx.message.text;
@@ -24,6 +26,8 @@ bot.on("message:text", async (ctx: MyContext) => {
   const userName = `${ctx.from?.first_name || ""} ${
     ctx.from?.last_name || ""
   }`.trim();
+
+  ctx.session.chatHistory ||= [];
 
   await handleIncomingMessage({
     chatId,
@@ -33,8 +37,6 @@ bot.on("message:text", async (ctx: MyContext) => {
     history: ctx.session.chatHistory,
   });
 
-  // Обновляем историю
-  ctx.session.chatHistory ||= [];
   ctx.session.chatHistory.push({
     role: "user",
     content: message,

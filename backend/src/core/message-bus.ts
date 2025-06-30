@@ -1,3 +1,4 @@
+// core/message-bus.ts
 import { sendTelegramMessage } from "../adapters/telegram/telegram-adapter";
 // import { sendWhatsAppMessage } from "../adapters/whatsapp/whatsapp-adapter";
 import { getChat, ChatPlatform } from "../chatStore";

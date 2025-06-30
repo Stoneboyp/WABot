@@ -1,3 +1,4 @@
+// whatsapp/bot.ts
 import { initWhatsAppAdapter } from "./whatsapp-adapter";
 
 export async function startWhatsAppBot() {

@@ -6,6 +6,18 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
 }
+
+export interface SessionData {
+  chatHistory?: ChatMessage[];
+  [key: string]: any;
+}
+
+export interface MyContext {
+  chatId: string;
+  platform: ChatPlatform;
+  userName: string;
+  session: SessionData;
+}
 export type ChatPlatform = "whatsapp" | "telegram" | "other";
 
 export interface ChatEntry {
@@ -45,4 +57,3 @@ export interface RepairRequest {
   createdAt: string;
   status: "new" | "in_progress" | "completed";
 }
-export type MyContext = Context & SessionFlavor<SessionData>;

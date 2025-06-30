@@ -1,3 +1,4 @@
+// core/handleIncomingMessage.ts
 import { getAIResponse } from "../services/ai-service";
 import { getChat, saveMessage } from "../chatStore";
 import { broadcastAll, broadcastTo } from "../ws/socket-server";

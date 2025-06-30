@@ -1,3 +1,4 @@
+// api/chat-api.ts
 import express, { Request, Response } from "express";
 import { getAIResponse } from "../services/ai-service";
 import {
@@ -15,6 +16,7 @@ import {
   broadcastTo,
   handleWebhookFromPlatform,
 } from "../ws/socket-server";
+import { MyContext } from "../types";
 
 const router = express.Router();
 
@@ -162,8 +164,10 @@ router.post("/chats/:chatId/send", async (req: Request, res: Response) => {
     }
 
     // Имитация контекста
-    const fakeCtx = {
-      from: { first_name: chat.userName },
+    const fakeCtx: MyContext = {
+      chatId,
+      platform,
+      userName: chat.userName,
       session: {
         chatHistory: chat.messages || [],
       },

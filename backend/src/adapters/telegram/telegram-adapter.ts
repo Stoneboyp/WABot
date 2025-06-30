@@ -1,3 +1,4 @@
+// telegram/telegram-adapter.ts
 import { bot } from "./bot";
 
 export async function sendTelegramMessage(

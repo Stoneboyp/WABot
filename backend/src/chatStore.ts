@@ -1,4 +1,4 @@
-// 📁 src/chatStore.ts
+// src/chatStore.ts
 import { ChatEntry, ChatMessage, ChatPlatform } from "./types";
 import { broadcastAll } from "./ws/socket-server";
 
