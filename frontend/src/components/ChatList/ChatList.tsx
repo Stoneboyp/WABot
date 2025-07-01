@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   List,
   ListItem,
@@ -8,6 +8,7 @@ import {
   Typography,
   Box,
   Badge,
+  Divider,
 } from "@mui/material";
 import { fetchChats } from "../../../services/api";
 import type { Chat } from "../../types";
@@ -18,14 +19,12 @@ type ChatListProps = {
 };
 
 export const ChatList = ({ onSelect }: ChatListProps) => {
-  const { chats, setChats, messages } = useChatContext();
+  const { chats, setChats } = useChatContext();
   const PORT = import.meta.env.PORT || 3000;
-  console.log("💬 chats:", chats, "messages", messages);
+
   useEffect(() => {
     const loadChats = async () => {
       const data = await fetchChats();
-      console.log("data", data);
-
       setChats(data);
     };
     loadChats();
@@ -38,59 +37,34 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === "chat_updated") {
+      if (data.type === "chat_updated" || data.type === "new_message") {
         setChats((prev) =>
           prev.map((chat) =>
             chat.chatId === data.payload.chatId &&
             chat.platform === data.payload.platform
-              ? {
-                  ...chat,
-                  lastMessage: data.payload.lastMessage,
-                  updatedAt: data.payload.updatedAt,
-                  notification: data.payload.notification,
-                }
+              ? { ...chat, ...data.payload }
               : chat
           )
         );
       }
+
       if (data.type === "new_chat") {
         const newChat = data.payload as Chat;
-
         setChats((prev) => {
           const exists = prev.some(
             (chat) =>
               chat.chatId === newChat.chatId &&
               chat.platform === newChat.platform
           );
-
-          if (exists) {
-            return prev.map((chat) =>
-              chat.chatId === newChat.chatId &&
-              chat.platform === newChat.platform
-                ? { ...chat, ...newChat }
-                : chat
-            );
-          } else {
-            return [...prev, newChat];
-          }
+          return exists
+            ? prev.map((chat) =>
+                chat.chatId === newChat.chatId &&
+                chat.platform === newChat.platform
+                  ? { ...chat, ...newChat }
+                  : chat
+              )
+            : [...prev, newChat];
         });
-      }
-      if (data.type === "new_message") {
-        const { chatId, platform, content, lastMessage } = data.payload;
-        console.log(chats);
-
-        setChats((prev) =>
-          prev.map((chat) =>
-            chat.chatId === chatId && chat.platform === platform
-              ? {
-                  ...chat,
-                  updatedAt: new Date().toISOString(),
-                  notification: data.payload.sender === "user",
-                  lastMessage: lastMessage || content,
-                }
-              : chat
-          )
-        );
       }
     };
 
@@ -110,35 +84,54 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        Список чатов
+      <Typography variant="h6" p={2}>
+        Чаты
       </Typography>
-      <List>
-        {chats.map((chat) => (
-          <ListItem
-            key={`${chat.platform}:${chat.chatId}`}
-            component="button"
-            onClick={() => onSelect(chat)}
-          >
-            <ListItemAvatar>
-              <Badge color="error" variant="dot" invisible={!chat.notification}>
-                <Avatar src={chat.avatar} />
-              </Badge>
-            </ListItemAvatar>
-            <ListItemText
-              primary={chat.userName}
-              secondary={
-                <>
-                  <Typography variant="body2" color="textSecondary" noWrap>
-                    {chat.lastMessage || "Нет сообщений"}
-                  </Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    {new Date(chat.updatedAt).toLocaleTimeString()}
-                  </Typography>
-                </>
-              }
-            />
-          </ListItem>
+      <List sx={{ width: "100%", bgcolor: "background.paper" }}>
+        {chats.map((chat, index) => (
+          <Box key={`${chat.platform}:${chat.chatId}`}>
+            <ListItem
+              button
+              alignItems="flex-start"
+              onClick={() => onSelect(chat)}
+            >
+              <ListItemAvatar>
+                <Badge
+                  color="error"
+                  variant="dot"
+                  invisible={!chat.notification}
+                >
+                  <Avatar src={chat.avatar} />
+                </Badge>
+              </ListItemAvatar>
+              <ListItemText
+                primary={
+                  <Typography fontWeight={600}>{chat.userName}</Typography>
+                }
+                secondary={
+                  <>
+                    <Typography
+                      component="span"
+                      variant="body2"
+                      color="text.secondary"
+                      noWrap
+                    >
+                      {chat.lastMessage || "Нет сообщений"}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ display: "block", color: "gray" }}
+                    >
+                      {new Date(chat.updatedAt).toLocaleTimeString()}
+                    </Typography>
+                  </>
+                }
+              />
+            </ListItem>
+            {index < chats.length - 1 && (
+              <Divider variant="inset" component="li" />
+            )}
+          </Box>
         ))}
       </List>
     </Box>

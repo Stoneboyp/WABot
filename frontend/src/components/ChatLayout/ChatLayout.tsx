@@ -16,26 +16,28 @@ export const ChatLayout = () => {
   };
 
   return (
-    <Box display="flex" height="100vh">
-      {/* Левая колонка со списком чатов */}
-      <Box width="320px" borderRight="1px solid #ccc" overflow="auto">
+    <Box display="flex" height="100vh" width="100vw" overflow="hidden">
+      <Box
+        width="30%"
+        borderRight="1px solid #ccc"
+        overflow="auto"
+        sx={{ minWidth: "300px", maxWidth: "30%" }} // чтобы не прыгала
+      >
         <ChatList onSelect={handleSelectChat} />
       </Box>
 
-      {/* Правая часть — окно чата или заглушка */}
-      <Box flexGrow={1} position="relative">
+      <Box width="70%" overflow="hidden" sx={{ minWidth: "60%" }}>
         {selectedChat ? (
           <ChatWindow chat={selectedChat} />
         ) : (
           <Box
             height="100%"
             display="flex"
-            flexDirection="column"
             alignItems="center"
             justifyContent="center"
             bgcolor="#f5f5f5"
           >
-            <Typography variant="h6" mt={2} color="textSecondary">
+            <Typography variant="h6" color="textSecondary">
               Выберите чат, чтобы начать диалог
             </Typography>
           </Box>
