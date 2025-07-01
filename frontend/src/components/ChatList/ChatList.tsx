@@ -119,10 +119,17 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
                       component="span"
                       variant="body2"
                       color="text.secondary"
-                      noWrap
+                      sx={{
+                        display: "inline-block",
+                        maxWidth: "100%",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
                     >
                       {chat.lastMessage || "Нет сообщений"}
                     </Typography>
+
                     <Typography
                       variant="caption"
                       sx={{ display: "block", color: "gray" }}
