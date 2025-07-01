@@ -3,6 +3,14 @@ import { getAIResponse } from "../services/ai-service";
 import { getChat, saveMessage } from "../chatStore";
 import { broadcastAll, broadcastTo } from "../ws/socket-server";
 import { sendMessageToClient } from "./message-bus";
+import {
+  sanitizeHistory,
+  validateAIResponse,
+  postProcessResponse,
+  isPotentialServiceQuestion,
+  fallbackResponse,
+} from "./guardRails";
+import { searchKnowledgeBase } from "../services/knowledge-base";
 
 interface HandleIncomingMessageOptions {
   chatId: string;
@@ -81,44 +89,120 @@ export async function handleIncomingMessage({
       session: { chatHistory: history },
     };
 
-    const response = await getAIResponse(
-      ctx as any,
+    // 1. Пробуем найти ответ в базе знаний
+    const kbAnswer = await searchKnowledgeBase(text);
+
+    if (kbAnswer) {
+      saveMessage(platform, chatId, "Bot", {
+        role: "assistant",
+        content: kbAnswer,
+        timestamp: new Date(),
+      });
+
+      chat.lastMessage = kbAnswer;
+      chat.updatedAt = new Date();
+
+      broadcastTo("admin", "admin", {
+        type: "chat_updated",
+        payload: {
+          chatId,
+          platform,
+          lastMessage: kbAnswer,
+          updatedAt: new Date(),
+          notification: true,
+        },
+      });
+
+      await sendMessageToClient(platform, chatId, kbAnswer);
+      broadcastTo(chatId, platform, {
+        type: "new_message",
+        payload: {
+          sender: "bot",
+          content: kbAnswer,
+          timestamp: new Date(),
+          lastMessage: kbAnswer,
+        },
+      });
+
+      return;
+    }
+
+    // 2. Если вопрос похож на запрос услуги, но KB не сработала — даём fallback
+    if (isPotentialServiceQuestion(text)) {
+      const fallback = fallbackResponse(text);
+
+      saveMessage(platform, chatId, "Bot", {
+        role: "assistant",
+        content: fallback,
+        timestamp: new Date(),
+      });
+
+      chat.lastMessage = fallback;
+      chat.updatedAt = new Date();
+
+      broadcastTo("admin", "admin", {
+        type: "chat_updated",
+        payload: {
+          chatId,
+          platform,
+          lastMessage: fallback,
+          updatedAt: new Date(),
+          notification: true,
+        },
+      });
+
+      await sendMessageToClient(platform, chatId, fallback);
+      broadcastTo(chatId, platform, {
+        type: "new_message",
+        payload: {
+          sender: "bot",
+          content: fallback,
+          timestamp: new Date(),
+          lastMessage: fallback,
+        },
+      });
+
+      return;
+    }
+
+    // 3. Вызываем AI и применяем защиты
+    const filteredHistory = sanitizeHistory(ctx as any, kbAnswer);
+    const aiRaw = await getAIResponse(
+      { ...ctx, session: { chatHistory: filteredHistory } } as any,
       text,
       `Клиент: ${userName}`
     );
+    const validated = validateAIResponse(aiRaw, kbAnswer);
+    const finalResponse = postProcessResponse(validated);
 
-    // Сохраняем ответ AI
     saveMessage(platform, chatId, "Bot", {
       role: "assistant",
-      content: response,
+      content: finalResponse,
       timestamp: new Date(),
     });
 
-    // Обновляем lastMessage для ответа бота
-    chat.lastMessage = response;
+    chat.lastMessage = finalResponse;
     chat.updatedAt = new Date();
 
-    // Отправляем обновление для списка чатов
     broadcastTo("admin", "admin", {
       type: "chat_updated",
       payload: {
         chatId,
         platform,
-        lastMessage: response,
+        lastMessage: finalResponse,
         updatedAt: new Date(),
         notification: true,
       },
     });
 
-    // Отправляем ответ в чат
-    await sendMessageToClient(platform, chatId, response);
+    await sendMessageToClient(platform, chatId, finalResponse);
     broadcastTo(chatId, platform, {
       type: "new_message",
       payload: {
         sender: "bot",
-        content: response,
+        content: finalResponse,
         timestamp: new Date(),
-        lastMessage: response,
+        lastMessage: finalResponse,
       },
     });
   } catch (err) {
