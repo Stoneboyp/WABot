@@ -17,12 +17,15 @@ type ChatContextType = {
   setUnreadMessages: React.Dispatch<
     React.SetStateAction<Record<string, number>>
   >;
+  chatsLoading: boolean;
+  setChatsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   clearChatNotification: (chatId: string, platform: string) => Promise<void>;
 };
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
+  const [chatsLoading, setChatsLoading] = useState(false);
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [isOperatorMode, setIsOperatorMode] = useState(false);
@@ -81,6 +84,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         setMessages,
         unreadMessages,
         setUnreadMessages,
+        chatsLoading,
+        setChatsLoading,
         clearChatNotification,
       }}
     >

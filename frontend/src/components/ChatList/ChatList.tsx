@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   List,
   ListItem,
@@ -9,6 +9,7 @@ import {
   Box,
   Badge,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import { fetchChats } from "../../../services/api";
 import type { Chat } from "../../types";
@@ -20,6 +21,7 @@ type ChatListProps = {
 
 export const ChatList = ({ onSelect }: ChatListProps) => {
   const { chats, setChats, selectedChat } = useChatContext();
+  const [isReady, setIsReady] = useState(false);
   const PORT = import.meta.env.PORT || 3000;
 
   useEffect(() => {
@@ -37,6 +39,12 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+
+      if (data.type === "welcome") {
+        console.log("🟢 WebSocket ready");
+        setIsReady(true);
+      }
+
       if (data.type === "chat_updated" || data.type === "new_message") {
         setChats((prev) =>
           prev.map((chat) =>
@@ -68,10 +76,6 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
       }
     };
 
-    ws.onerror = (err) => {
-      console.error("WebSocket error:", err);
-    };
-
     return () => {
       if (
         ws.readyState === WebSocket.OPEN ||
@@ -81,6 +85,19 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
       }
     };
   }, []);
+
+  if (!isReady) {
+    return (
+      <Box
+        height="100%"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box>
