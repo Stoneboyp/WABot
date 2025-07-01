@@ -113,17 +113,15 @@ export const ChatWindow = ({
     id: number;
   }) => {
     setChats((prev) =>
-      prev.map((c) =>
-        c.chatId === chat.chatId && c.platform === chat.platform
+      prev.map((chat) =>
+        chat.chatId === chat.chatId && chat.platform === chat.platform
           ? {
-              ...c,
+              ...chat,
               lastMessage: lastMsg.text,
               updatedAt: lastMsg.timestamp,
               notification: false,
-              // При желании можно хранить messages в chat
-              // messages: [...(c.messages || []), lastMsg],
             }
-          : c
+          : chat
       )
     );
   };

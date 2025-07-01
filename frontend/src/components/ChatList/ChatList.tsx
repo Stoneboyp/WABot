@@ -19,7 +19,7 @@ type ChatListProps = {
 };
 
 export const ChatList = ({ onSelect }: ChatListProps) => {
-  const { chats, setChats } = useChatContext();
+  const { chats, setChats, selectedChat } = useChatContext();
   const PORT = import.meta.env.PORT || 3000;
 
   useEffect(() => {
@@ -94,6 +94,12 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
               sx={{
                 cursor: "pointer",
                 alignItems: "flex-start",
+                backgroundColor:
+                  selectedChat &&
+                  selectedChat.chatId === chat.chatId &&
+                  selectedChat.platform === chat.platform
+                    ? "rgba(0, 0, 0, 0.04)"
+                    : "transparent",
                 "&:hover": {
                   backgroundColor: "rgba(0, 0, 0, 0.04)",
                 },
