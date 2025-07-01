@@ -51,14 +51,6 @@ export const ChatWindow = ({
     try {
       if (isOperatorMode) {
         await sendOperatorReply(chat.chatId, text, chat.platform);
-        const newMsg = {
-          id: Date.now(),
-          text,
-          sender: "operator",
-          timestamp: now,
-        };
-        setMessages((prev) => [...prev, newMsg]);
-        syncChatMessages(newMsg);
       } else {
         const response = await sendMessage(
           chat.chatId,
