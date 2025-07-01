@@ -3,7 +3,6 @@ import { ChatList } from "@components/ChatList/ChatList";
 import { ChatWindow } from "@components/ChatWindow/ChatWindow";
 import { Typography } from "@mui/material";
 import { useChatContext } from "../../context/ChatContext";
-import { clearNotification } from "../../../services/api";
 import type { Chat } from "@/types";
 
 export const ChatLayout = () => {

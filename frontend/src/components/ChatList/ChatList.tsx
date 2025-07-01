@@ -91,8 +91,13 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
         {chats.map((chat, index) => (
           <Box key={`${chat.platform}:${chat.chatId}`}>
             <ListItem
-              button
-              alignItems="flex-start"
+              sx={{
+                cursor: "pointer",
+                alignItems: "flex-start",
+                "&:hover": {
+                  backgroundColor: "rgba(0, 0, 0, 0.04)",
+                },
+              }}
               onClick={() => onSelect(chat)}
             >
               <ListItemAvatar>
