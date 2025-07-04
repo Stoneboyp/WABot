@@ -8,7 +8,7 @@ export interface Message {
 }
 export type Chat = {
   chatId: string;
-  platform: string;
+  platform: "whatsapp" | "telegram";
   userName: string;
   avatar?: string;
   updatedAt: string;

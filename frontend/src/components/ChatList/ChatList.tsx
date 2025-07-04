@@ -14,6 +14,8 @@ import {
 import { fetchChats } from "../../../services/api";
 import type { Chat } from "../../types";
 import { useChatContext } from "@/context/ChatContext";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import TelegramIcon from "@mui/icons-material/Telegram";
 
 type ChatListProps = {
   onSelect: (chat: Chat) => void;
@@ -132,6 +134,11 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
                   <Avatar src={chat.avatar} />
                 </Badge>
               </ListItemAvatar>
+              {chat.platform === "telegram" ? (
+                <TelegramIcon />
+              ) : chat.platform === "whatsapp" ? (
+                <WhatsAppIcon />
+              ) : null}
               <ListItemText
                 primary={
                   <Typography fontWeight={600}>{chat.userName}</Typography>
