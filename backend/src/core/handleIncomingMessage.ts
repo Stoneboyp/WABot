@@ -11,6 +11,8 @@ import {
   fallbackResponse,
 } from "./guardRails";
 import { searchKnowledgeBase } from "../services/knowledge-base";
+import logger from "../core/logger";
+import { logSessionEvent } from "../core/sessionLogger";
 
 interface HandleIncomingMessageOptions {
   chatId: string;
@@ -34,6 +36,14 @@ export async function handleIncomingMessage({
     role: "user",
     content: text,
     timestamp: now,
+  });
+  logger.info(`[${platform}:${chatId}] 💬 Входящее: "${text}" от ${userName}`);
+
+  logSessionEvent(chatId, platform, {
+    type: "incoming_user_message",
+    userName,
+    content: text,
+    timestamp: now.toISOString(),
   });
 
   console.log(`[INCOMING] [${platform}] ${chatId} <- ${text}`);
@@ -79,7 +89,7 @@ export async function handleIncomingMessage({
   });
 
   if (chat.mode === "operator") {
-    console.log(`🛑 Chat ${chatId} в режиме operator — AI не отвечает`);
+    logger.info(`[${platform}:${chatId}] 🛑 AI не отвечает (operator mode)`);
     return;
   }
 
@@ -93,6 +103,13 @@ export async function handleIncomingMessage({
     const kbAnswer = await searchKnowledgeBase(text);
 
     if (kbAnswer) {
+      logger.info(`[${platform}:${chatId}] 📚 Ответ из базы знаний`);
+
+      logSessionEvent(chatId, platform, {
+        type: "kb_answer",
+        content: kbAnswer,
+        timestamp: new Date().toISOString(),
+      });
       saveMessage(platform, chatId, "Bot", {
         role: "assistant",
         content: kbAnswer,
@@ -130,7 +147,15 @@ export async function handleIncomingMessage({
     // 2. Если вопрос похож на запрос услуги, но KB не сработала — даём fallback
     if (isPotentialServiceQuestion(text)) {
       const fallback = fallbackResponse(text);
+      logger.info(
+        `[${platform}:${chatId}] 🔙 Fallback-ответ по ключевой фразе`
+      );
 
+      logSessionEvent(chatId, platform, {
+        type: "fallback",
+        content: fallback,
+        timestamp: new Date().toISOString(),
+      });
       saveMessage(platform, chatId, "Bot", {
         role: "assistant",
         content: fallback,
@@ -205,8 +230,22 @@ export async function handleIncomingMessage({
         lastMessage: finalResponse,
       },
     });
+    logger.info(`[${platform}:${chatId}] 🤖 AI ответил: "${finalResponse}"`);
+
+    logSessionEvent(chatId, platform, {
+      type: "ai_answer",
+      content: finalResponse,
+      timestamp: new Date().toISOString(),
+    });
   } catch (err) {
-    console.error("AI error:", err);
+    logger.error(`[${platform}:${chatId}] ❌ Ошибка AI: ${err}`);
+
+    logSessionEvent(chatId, platform, {
+      type: "error",
+      error: err instanceof Error ? err.message : String(err),
+      timestamp: new Date().toISOString(),
+    });
+
     await sendMessageToClient(
       platform,
       chatId,
