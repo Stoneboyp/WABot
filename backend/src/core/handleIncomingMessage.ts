@@ -20,6 +20,7 @@ import {
 import { isReadyForConfirmation } from "../utils/sessionCheckers";
 import { scenarioConfigs } from "../utils/scenarioConfigs";
 import { detectScenario } from "../utils/scenarioDetector";
+import { addTicket } from "../store/ticketStore";
 
 interface HandleIncomingMessageOptions {
   chatId: string;
@@ -167,6 +168,8 @@ export async function handleIncomingMessage({
       ctx.session.step = "done";
 
       chat.session = ctx.session;
+
+      addTicket(chatId, platform, ctx.session);
 
       logSessionEvent(chatId, platform, {
         type: "confirmation",
