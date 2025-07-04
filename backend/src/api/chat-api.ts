@@ -7,10 +7,10 @@ import {
   getAllChats,
   setChatMode,
   chatStore,
-} from "../chatStore";
+} from "../store/chatStore";
 import { sendMessageToClient } from "../core/message-bus";
 import { formatMessage } from "../utils/formatMessage";
-import { ChatPlatform } from "../chatStore";
+import { ChatPlatform } from "../store/chatStore";
 import {
   broadcastAll,
   broadcastTo,

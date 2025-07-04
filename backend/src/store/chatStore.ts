@@ -1,6 +1,6 @@
 // src/chatStore.ts
-import { ChatEntry, ChatMessage, ChatPlatform } from "./types";
-import { broadcastAll } from "./ws/socket-server";
+import { ChatEntry, ChatMessage, ChatPlatform } from "../types";
+import { broadcastAll } from "../ws/socket-server";
 
 function makeKey(platform: ChatPlatform, chatId: string) {
   return `${platform}:${chatId}`;
