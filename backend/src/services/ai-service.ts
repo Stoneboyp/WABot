@@ -7,6 +7,7 @@ import { MyContext } from "../types";
 import { ChatCompletionMessageParam as OpenAIMessage } from "openai/resources/chat";
 import { ChatCompletionMessageParam as GroqMessage } from "groq-sdk/resources/chat/completions";
 import { loadKnowledgeBase, findAnswerInKB } from "../utils/knowledgeBase";
+import { systemPrompt } from "../prompts/systemPrompt";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -77,23 +78,6 @@ export async function getAIResponse(
   if (isPriceRelated) {
     return "Извините, я не могу точно ответить на вопрос о стоимости. Лучше уточнить у нашего оператора.";
   }
-
-  const systemPrompt = `
-Ты — опытный AI-консультант компании Integra Business, специализирующейся на ремонте оргтехники, ноутбуков, а также заправке и восстановлении картриджей.
-
-Твоя задача — вежливо и эффективно помогать клиенту:
-- подобрать нужную услугу,
-- уточнить стоимость (если она есть в базе знаний),
-- объяснить, как проходит выезд, оплата, диагностика,
-- подсказать, как оставить заявку или получить помощь.
-
-Правила:
-1. Сначала ищи ответ в базе знаний (таблица), не выдумывай ничего от себя.
-2. Если ответа нет — используй общие знания и аккуратно предположи, что может подойти.
-3. Никогда не придумывай цену, адрес или условия,если она не найдена в базе знаний.
-4. Если вопрос не по твоей теме — деликатно откажи.
-5. Общайся по-человечески, но профессионально. Клиенты — не технические специалисты, объясняй просто и понятно.
-`;
 
   const openaiMessages: OpenAIMessage[] = [
     { role: "system", content: systemPrompt + "\n" + context },
