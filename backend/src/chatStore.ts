@@ -33,6 +33,7 @@ export function saveMessage(
       mode: "ai",
       notification: false,
       lastMessage: message.content,
+      session: {},
     };
 
     chatStore.set(key, newChat);

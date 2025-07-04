@@ -13,6 +13,13 @@ import {
 import { searchKnowledgeBase } from "../services/knowledge-base";
 import logger from "../core/logger";
 import { logSessionEvent } from "../core/sessionLogger";
+import {
+  isConfirmationResponse,
+  isPromptingConfirmation,
+} from "../utils/textMatchers";
+import { isReadyForConfirmation } from "../utils/sessionCheckers";
+import { scenarioConfigs } from "../utils/scenarioConfigs";
+import { detectScenario } from "../utils/scenarioDetector";
 
 interface HandleIncomingMessageOptions {
   chatId: string;
@@ -96,9 +103,79 @@ export async function handleIncomingMessage({
   try {
     const ctx = {
       from: { first_name: userName },
-      session: { chatHistory: history },
+      session: { chatHistory: history, ...(chat.session || {}) },
     };
 
+    // Попробовать определить сценарий, если он ещё не установлен
+    if (!ctx.session.scenario) {
+      const detected = detectScenario(text);
+      if (detected) {
+        ctx.session.scenario = detected;
+        logger.info(
+          `[${platform}:${chatId}] 🧠 Обнаружен сценарий: ${detected}`
+        );
+      }
+    }
+
+    if (isReadyForConfirmation(ctx.session)) {
+      const scenario = ctx.session.scenario;
+      if (!scenario || !scenarioConfigs[scenario]) {
+        logger.error(
+          `[${platform}:${chatId}] ❌ Неизвестный сценарий: "${scenario}"`
+        );
+        await sendMessageToClient(
+          platform,
+          chatId,
+          "Произошла ошибка — не удалось определить тип заявки."
+        );
+        return;
+      }
+      const scenarioConfig = scenarioConfigs[scenario];
+
+      const confirmText = scenarioConfig.buildConfirmation(ctx.session);
+      ctx.session.step = "awaiting_confirmation";
+
+      await sendMessageToClient(platform, chatId, confirmText);
+      return;
+    }
+
+    if (
+      ctx.session.step === "awaiting_confirmation" &&
+      isConfirmationResponse(text)
+    ) {
+      const scenario = ctx.session.scenario;
+      if (!scenario || !scenarioConfigs[scenario]) {
+        logger.error(
+          `[${platform}:${chatId}] ❌ Неизвестный сценарий при подтверждении: "${scenario}"`
+        );
+        await sendMessageToClient(
+          platform,
+          chatId,
+          "Произошла ошибка при подтверждении заявки."
+        );
+        return;
+      }
+      const scenarioConfig = scenarioConfigs[scenario];
+
+      const confirmMsg =
+        scenarioConfig.buildFinalConfirmation?.(ctx.session) ||
+        "✅ Заявка оформлена. Мы скоро с вами свяжемся.";
+
+      await sendMessageToClient(platform, chatId, confirmMsg);
+
+      ctx.session.confirmed = true;
+      ctx.session.step = "done";
+
+      chat.session = ctx.session;
+
+      logSessionEvent(chatId, platform, {
+        type: "confirmation",
+        content: confirmMsg,
+        timestamp: new Date().toISOString(),
+      });
+
+      return;
+    }
     // 1. Пробуем найти ответ в базе знаний
     const kbAnswer = await searchKnowledgeBase(text);
 
@@ -199,7 +276,10 @@ export async function handleIncomingMessage({
     );
     const validated = validateAIResponse(aiRaw, kbAnswer);
     const finalResponse = postProcessResponse(validated);
-
+    if (isPromptingConfirmation(finalResponse)) {
+      ctx.session.step = "awaiting_confirmation";
+    }
+    chat.session = ctx.session;
     saveMessage(platform, chatId, "Bot", {
       role: "assistant",
       content: finalResponse,
@@ -219,7 +299,7 @@ export async function handleIncomingMessage({
         notification: true,
       },
     });
-
+    logger.debug(`[${platform}:${chatId}] 💾 Session state:`, ctx.session);
     await sendMessageToClient(platform, chatId, finalResponse);
     broadcastTo(chatId, platform, {
       type: "new_message",

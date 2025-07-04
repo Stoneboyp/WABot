@@ -8,8 +8,23 @@ export interface ChatMessage {
 }
 
 export interface SessionData {
+  scenario?: "repair" | "cartridge" | "purchase";
+  step?: "collecting" | "awaiting_confirmation" | "done";
+  confirmed?: boolean;
+
+  // Для заправки картриджей
+  model?: string;
+  count?: number;
+  address?: string;
+
+  // Для ремонта
+  deviceType?: string;
+  problem?: string;
+
+  // Для покупки
+  product?: string;
+
   chatHistory?: ChatMessage[];
-  [key: string]: any;
 }
 
 export interface MyContext {
@@ -24,6 +39,7 @@ export interface ChatEntry {
   platform: ChatPlatform;
   chatId: string;
   userName: string;
+  session: SessionData;
   avatar?: string;
   messages: ChatMessage[];
   updatedAt: Date;
@@ -31,22 +47,6 @@ export interface ChatEntry {
   status: "online" | "offline" | "waiting";
   notification?: boolean;
   lastMessage?: string;
-}
-
-export interface SessionData {
-  scenario?: "repair" | "cartridge" | "purchase" | "ai_chat";
-  step?: string;
-
-  // Для сценария ремонта
-  deviceType?: string;
-  problem?: string;
-  contact?: string;
-
-  // Для сценария заправки картриджей
-  model?: string;
-
-  // История сообщений для AI-чата или общего хранения
-  chatHistory?: ChatMessage[];
 }
 
 export interface RepairRequest {
