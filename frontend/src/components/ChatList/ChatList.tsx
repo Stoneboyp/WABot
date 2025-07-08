@@ -36,7 +36,7 @@ export const ChatList = ({ onSelect }: ChatListProps) => {
 
   useEffect(() => {
     const ws = new WebSocket(
-      `ws://94.228.118.190/:${PORT}/?chatId=admin&platform=admin`
+      `${import.meta.env.VITE_WS_URL}/?chatId=admin&platform=admin`
     );
 
     ws.onmessage = (event) => {

@@ -8,9 +8,11 @@ export function useWebSocket(
 
   useEffect(() => {
     const isGlobal = chatId === "*" && platform === "*";
+    const baseUrl = import.meta.env.VITE_WS_URL;
     const url = isGlobal
-      ? `ws://94.228.118.190:3000/`
-      : `ws://94.228.118.190:3000/?chatId=${chatId}&platform=${platform}`;
+      ? baseUrl
+      : `${baseUrl}/?chatId=${chatId}&platform=${platform}`;
+
     const ws = new WebSocket(url);
     socketRef.current = ws;
 
