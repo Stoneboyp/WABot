@@ -9,8 +9,8 @@ export function useWebSocket(
   useEffect(() => {
     const isGlobal = chatId === "*" && platform === "*";
     const url = isGlobal
-      ? `ws://localhost:3000/`
-      : `ws://localhost:3000/?chatId=${chatId}&platform=${platform}`;
+      ? `ws://94.228.118.190:3000/`
+      : `ws://94.228.118.190:3000/?chatId=${chatId}&platform=${platform}`;
     const ws = new WebSocket(url);
     socketRef.current = ws;
 
