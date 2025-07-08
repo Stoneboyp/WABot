@@ -28,7 +28,7 @@ setupWebSocket(server);
 // Запуск сервера
 server.listen(PORT, () => {
   console.log(`🚀 Сервер запущен на порту ${PORT}`);
-  console.log(`📡 API: http://94.228.118.190"${PORT}/api`);
+  console.log(`📡 API: http://94.228.118.190:${PORT}/api`);
 });
 
 // Запуск Telegram-бота
