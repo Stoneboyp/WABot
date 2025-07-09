@@ -10,7 +10,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
+const API_URL = process.env.API_URL || "http://localhost";
 
 // HTTP + WebSocket на одном сервере
 const server = http.createServer(app);
@@ -28,7 +29,7 @@ setupWebSocket(server);
 // Запуск сервера
 server.listen(PORT, () => {
   console.log(`🚀 Сервер запущен на порту ${PORT}`);
-  console.log(`📡 API: http://94.228.118.190:${PORT}/api`);
+  console.log(`📡 API: ${API_URL}:${PORT}/api`);
 });
 
 // Запуск Telegram-бота

@@ -1,13 +1,15 @@
+/// <reference types="vite/client" />
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-
+const baseUrl = import.meta.env.VITE_WS_URL;
 export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
       "/api": {
-        target: "http://94.228.118.190/:3000",
+        target: baseUrl,
         changeOrigin: true,
       },
     },
