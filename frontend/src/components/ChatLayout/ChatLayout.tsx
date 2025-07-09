@@ -20,7 +20,7 @@ export const ChatLayout = () => {
         width="30%"
         borderRight="1px solid #ccc"
         overflow="auto"
-        sx={{ minWidth: "300px", maxWidth: "30%" }} // чтобы не прыгала
+        sx={{ minWidth: "300px", maxWidth: "30%" }}
       >
         <ChatList onSelect={handleSelectChat} />
       </Box>
