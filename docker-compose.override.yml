@@ -1,0 +1,9 @@
+# docker-compose.override.yml
+services:
+  backend:
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    command: npm run dev
