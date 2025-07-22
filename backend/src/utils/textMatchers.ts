@@ -6,10 +6,3 @@ export function isConfirmationResponse(text: string): boolean {
     normalized.includes(w)
   );
 }
-
-export function isPromptingConfirmation(aiText: string): boolean {
-  const norm = aiText.toLowerCase();
-  return (
-    norm.includes("подтвердите заявку") || norm.includes("оформить заявку")
-  );
-}

@@ -13,10 +13,7 @@ import {
 import { searchKnowledgeBase } from "../services/knowledge-base";
 import logger from "../core/logger";
 import { logSessionEvent } from "../core/sessionLogger";
-import {
-  isConfirmationResponse,
-  isPromptingConfirmation,
-} from "../utils/textMatchers";
+import { isConfirmationResponse } from "../utils/textMatchers";
 import { isReadyForConfirmation } from "../utils/sessionCheckers";
 import { scenarioConfigs } from "../utils/scenarioConfigs";
 import { detectScenario } from "../utils/scenarioDetector";
@@ -279,9 +276,7 @@ export async function handleIncomingMessage({
     );
     const validated = validateAIResponse(aiRaw, kbAnswer);
     const finalResponse = postProcessResponse(validated);
-    if (isPromptingConfirmation(finalResponse)) {
-      ctx.session.step = "awaiting_confirmation";
-    }
+
     chat.session = ctx.session;
     saveMessage(platform, chatId, "Bot", {
       role: "assistant",
