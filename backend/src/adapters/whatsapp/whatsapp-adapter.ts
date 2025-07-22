@@ -32,7 +32,7 @@ export async function initWhatsAppAdapter() {
 
       const webhookBody = response.body;
       const receiptId = response.receiptId;
-      console.log("📥 RAW webhook body:", JSON.stringify(webhookBody, null, 2));
+      // console.log("📥 RAW webhook body:", JSON.stringify(webhookBody, null, 2));
       switch (webhookBody.typeWebhook) {
         case "incomingMessageReceived": {
           const type = webhookBody.messageData?.typeMessage;

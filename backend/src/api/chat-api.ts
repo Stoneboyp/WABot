@@ -43,7 +43,6 @@ router.get("/chats", (req: Request, res: Response) => {
  * GET /chats/:chatId?platform=telegram
  * Получение истории сообщений по чату
  */
-//@ts-expect-error
 router.get("/chats/:chatId", (req: Request, res: Response) => {
   const platform = req.query.platform as ChatPlatform;
   const chatId = req.params.chatId;
@@ -63,7 +62,6 @@ router.get("/chats/:chatId", (req: Request, res: Response) => {
  * POST /chats/:chatId/reply
  * Отправка ответа от оператора
  */
-//@ts-expect-error
 router.post("/chats/:chatId/reply", async (req: Request, res: Response) => {
   const platform = req.body.platform as ChatPlatform;
   if (!platform) {
@@ -133,7 +131,6 @@ router.post("/chats/:chatId/reply", async (req: Request, res: Response) => {
  * POST /chats/:chatId/send
  * AI-режим: пользователь пишет → AI отвечает
  */
-//@ts-expect-error
 router.post("/chats/:chatId/send", async (req: Request, res: Response) => {
   const platform = req.body.platform as ChatPlatform;
   const chatId = req.params.chatId;
@@ -225,7 +222,6 @@ router.post("/chats/:chatId/send", async (req: Request, res: Response) => {
   }
 });
 
-//@ts-expect-error
 router.post("/chats/:chatId/mode", (req: Request, res: Response) => {
   const platform = req.body.platform as ChatPlatform;
   const mode = req.body.mode as "operator" | "ai";
@@ -244,7 +240,6 @@ router.post("/chats/:chatId/mode", (req: Request, res: Response) => {
 
 router.post(
   "/chats/:platform/:chatId/clear-notification",
-  //@ts-expect-error
   (req: Request, res: Response) => {
     const { platform, chatId } = req.params;
     const chat = chatStore.get(`${platform}:${chatId}`);

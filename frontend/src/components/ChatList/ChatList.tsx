@@ -24,7 +24,6 @@ type ChatListProps = {
 export const ChatList = ({ onSelect }: ChatListProps) => {
   const { chats, setChats, selectedChat } = useChatContext();
   const [isReady, setIsReady] = useState(false);
-  const PORT = import.meta.env.PORT || 3000;
 
   useEffect(() => {
     const loadChats = async () => {
