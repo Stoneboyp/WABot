@@ -1,23 +1,46 @@
 // services/notifications.ts
-import { bot } from "../adapters/telegram/bot";
 import dotenv from "dotenv";
-import { RepairRequest } from "../types";
+import { AIMessage, ChatPlatform, RepairRequest } from "../types";
+import { sendMessageToClient } from "../core/message-bus";
 
 dotenv.config();
 
-export async function notifyManager(request: RepairRequest) {
+export async function notifyManager(
+  platform: ChatPlatform,
+  aiMessage: AIMessage
+) {
   const MANAGER_CHAT_ID = process.env.TG_MANAGER_ID;
-  if (!MANAGER_CHAT_ID) {
-    console.error("MANAGER_CHAT_ID is not defined");
+  const WA_MANAGER_ID_INSTANCE = process.env.WA_MANAGER_ID_INSTANCE;
+  let managerChatId: string | undefined;
+
+  if (platform === "telegram") {
+    managerChatId = process.env.TG_MANAGER_ID;
+  } else if (platform === "whatsapp") {
+    managerChatId = process.env.WA_MANAGER_ID_INSTANCE;
+  }
+
+  if (!managerChatId) {
+    console.error(`❌ Менеджерский chatId для платформы ${platform} не найден`);
     return;
   }
-  const text = `📢 Новая заявка!\nТип: ${request.type}\nПроблема: ${request.problem}\nКонтакт: ${request.contact}`;
 
-  await bot.api.sendMessage(MANAGER_CHAT_ID, text, {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "Принять в работу", callback_data: `accept_${request.id}` }],
-      ],
-    },
-  });
+  const { request_id, service, deviceType, model, problem, address } =
+    aiMessage.data;
+
+  const lines = [
+    `📢 Новая заявка №${request_id || "-"}`,
+    `Услуга: ${service}`,
+    deviceType && `Тип устройства: ${deviceType}`,
+    model && `Модель: ${model}`,
+    problem && `Проблема: ${problem}`,
+    address && `Адрес: ${address}`,
+  ].filter(Boolean);
+
+  const text = lines.join("\n");
+
+  try {
+    await sendMessageToClient(platform, managerChatId, text);
+  } catch (err) {
+    console.error("❌ Ошибка при отправке уведомления менеджеру:", err);
+  }
 }

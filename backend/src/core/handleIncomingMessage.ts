@@ -19,6 +19,7 @@ import { scenarioConfigs } from "../utils/scenarioConfigs";
 import { detectScenario } from "../utils/scenarioDetector";
 import { addTicket } from "../store/ticketStore";
 import { AIMessage } from "../types";
+import { notifyManager } from "../services/notification";
 interface HandleIncomingMessageOptions {
   chatId: string;
   platform: "telegram" | "whatsapp" | "other";
@@ -287,6 +288,7 @@ export async function handleIncomingMessage({
 
     if (aiMessage.step === "completed" && aiMessage.data.confirmed) {
       addTicket(chatId, platform, ctx.session, aiMessage);
+      notifyManager(platform, aiMessage);
     }
 
     await sendMessageToClient(platform, chatId, aiMessage.response);
