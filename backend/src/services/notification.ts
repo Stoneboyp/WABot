@@ -10,13 +10,13 @@ export async function notifyManager(
   aiMessage: AIMessage
 ) {
   const MANAGER_CHAT_ID = process.env.TG_MANAGER_ID;
-  const WA_MANAGER_ID_INSTANCE = process.env.WA_MANAGER_ID_INSTANCE;
+  const WA_MANAGER_NUMBER = process.env.WA_MANAGER_NUMBER;
   let managerChatId: string | undefined;
 
   if (platform === "telegram") {
     managerChatId = process.env.TG_MANAGER_ID;
   } else if (platform === "whatsapp") {
-    managerChatId = process.env.WA_MANAGER_ID_INSTANCE;
+    managerChatId = process.env.WA_MANAGER_NUMBER;
   }
 
   if (!managerChatId) {

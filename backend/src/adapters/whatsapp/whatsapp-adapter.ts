@@ -1,15 +1,15 @@
-//whatsapp-adapter.ts
 import dotenv from "dotenv";
 dotenv.config();
 
 import { handleIncomingMessage } from "../../core/handleIncomingMessage";
-
-// Импортируем официальный клиент Green API
 import whatsAppClient from "@green-api/whatsapp-api-client";
+import { saveMessage, getChat, ChatPlatform } from "../../store/chatStore";
 
 const idInstance = process.env.WA_MANAGER_ID_INSTANCE!;
 const apiTokenInstance = process.env.WA_API_TOKEN_INSTANCE!;
 const BASE_URL = `https://api.green-api.com/waInstance${idInstance}`;
+const allowedChatId = process.env.WA_TEST_CHAT_ID!;
+const platform: ChatPlatform = "whatsapp";
 
 export async function initWhatsAppAdapter() {
   if (process.env.ENABLE_WHATSAPP !== "true") {
@@ -24,21 +24,18 @@ export async function initWhatsAppAdapter() {
 
   console.log("📡 WhatsApp polling loop started");
 
-  // 🔁 polling loop
   while (true) {
     try {
       const response = await restAPI.webhookService.receiveNotification();
       if (!response) continue;
 
-      const webhookBody = response.body;
-      const receiptId = response.receiptId;
-      // console.log("📥 RAW webhook body:", JSON.stringify(webhookBody, null, 2));
+      const { body: webhookBody, receiptId } = response;
+
       switch (webhookBody.typeWebhook) {
         case "incomingMessageReceived": {
           const type = webhookBody.messageData?.typeMessage;
 
           let msg: string | undefined;
-
           if (type === "textMessage") {
             msg = webhookBody.messageData.textMessageData?.textMessage;
           } else if (type === "extendedTextMessage") {
@@ -53,16 +50,22 @@ export async function initWhatsAppAdapter() {
           console.log(
             `📥 Входящее WA сообщение: ${userName} (${chatId}): ${msg}`
           );
-          // only test user
-          const allowedChatId = process.env.WA_TEST_CHAT_ID;
 
           if (msg && chatId === allowedChatId) {
+            saveMessage(platform, chatId, userName, {
+              role: "user",
+              content: msg,
+              timestamp: new Date(),
+            });
+            const history = getChat(platform, chatId)?.messages || [];
+            console.log(history);
+
             await handleIncomingMessage({
               chatId,
-              platform: "whatsapp",
+              platform,
               userName,
               text: msg,
-              history: [],
+              history,
             });
           } else {
             console.log(`🚫 Пропущено WA-сообщение от ${chatId}`);
@@ -86,11 +89,10 @@ export async function initWhatsAppAdapter() {
         }
       }
 
-      // ✅ Обязательно удаляем уведомление, чтобы API не присылал его снова
       await restAPI.webhookService.deleteNotification(receiptId);
     } catch (err) {
       console.error("❌ Ошибка в WhatsApp poll loop:", err);
-      await new Promise((res) => setTimeout(res, 5000)); // Пауза 5 сек при ошибке
+      await new Promise((res) => setTimeout(res, 5000));
     }
   }
 }
@@ -102,27 +104,3 @@ export async function sendWhatsAppMessage(chatId: string, text: string) {
     body: JSON.stringify({ chatId, message: text }),
   });
 }
-
-//temp use pooling
-// export async function handleWhatsAppWebhook(req: any, res: any) {
-//   const body = req.body;
-//   console.log("📩 WhatsApp webhook:", body);
-
-//   if (body.messageData?.textMessageData) {
-//     const chatId = body.senderData?.chatId;
-//     const userName = body.senderData?.senderName || "WhatsApp User";
-//     const text = body.messageData.textMessageData.textMessage;
-
-//     if (chatId && text) {
-//       await handleIncomingMessage({
-//         chatId,
-//         platform: "whatsapp",
-//         userName,
-//         text,
-//         history: [], // можно позже внедрить хранилище истории
-//       });
-//     }
-//   }
-
-//   res.sendStatus(200);
-// }

@@ -1,11 +1,12 @@
 // src/types.ts
-import { Context, SessionFlavor } from "grammy";
 
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
 }
+
+export type ChatPlatform = "whatsapp" | "telegram" | "other";
 
 export interface AIMessage {
   step: string;
@@ -50,7 +51,6 @@ export interface MyContext {
   userName: string;
   session: SessionData;
 }
-export type ChatPlatform = "whatsapp" | "telegram" | "other";
 
 export interface ChatEntry {
   platform: ChatPlatform;

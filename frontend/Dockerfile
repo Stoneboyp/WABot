@@ -8,6 +8,9 @@ ENV VITE_WS_URL=$VITE_WS_URL
 WORKDIR /app
 COPY . .
 
+RUN npm config set fetch-retries 5 \
+ && npm config set fetch-retry-mintimeout 20000 \
+ && npm config set fetch-retry-maxtimeout 60000
 RUN npm install
 RUN npm run build
 

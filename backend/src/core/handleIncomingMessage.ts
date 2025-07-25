@@ -285,6 +285,7 @@ export async function handleIncomingMessage({
       console.error("❌ Не удалось распарсить JSON из AI:", aiRaw);
       throw new Error("AI ответ в неверном формате");
     }
+    console.log(aiMessage);
 
     if (aiMessage.step === "completed" && aiMessage.data.confirmed) {
       addTicket(chatId, platform, ctx.session, aiMessage);
