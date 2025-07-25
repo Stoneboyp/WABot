@@ -1,7 +1,7 @@
 // core/handleIncomingMessage.ts
 import { getAIResponse } from "../services/ai-service";
 import { getChat, saveMessage } from "../store/chatStore";
-import { broadcastAll, broadcastTo } from "../ws/socket-server";
+import { broadcastTo } from "../ws/socket-server";
 import { sendMessageToClient } from "./message-bus";
 import {
   sanitizeHistory,
@@ -18,7 +18,7 @@ import { isReadyForConfirmation } from "../utils/sessionCheckers";
 import { scenarioConfigs } from "../utils/scenarioConfigs";
 import { detectScenario } from "../utils/scenarioDetector";
 import { addTicket } from "../store/ticketStore";
-
+import { AIMessage } from "../types";
 interface HandleIncomingMessageOptions {
   chatId: string;
   platform: "telegram" | "whatsapp" | "other";
@@ -26,23 +26,6 @@ interface HandleIncomingMessageOptions {
   text: string;
   history?: { role: "user" | "assistant"; content: string; timestamp: Date }[];
 }
-
-type AIMessage = {
-  step: string;
-  response: string;
-  data: {
-    service: string | null;
-    deviceType: string | null;
-    model: string | null;
-    quantity: number | null;
-    problem: string | null;
-    address: string | null;
-    request_id: string | null;
-    confirmed: boolean;
-  };
-  next_question: string | null;
-  [key: string]: any; // если AI может возвращать ещё поля
-};
 
 export async function handleIncomingMessage({
   chatId,
@@ -183,8 +166,6 @@ export async function handleIncomingMessage({
 
       chat.session = ctx.session;
 
-      addTicket(chatId, platform, ctx.session);
-
       logSessionEvent(chatId, platform, {
         type: "confirmation",
         content: confirmMsg,
@@ -291,7 +272,6 @@ export async function handleIncomingMessage({
       text,
       `Клиент: ${userName}`
     );
-
     let aiMessage: AIMessage;
     try {
       aiMessage = JSON.parse(
@@ -305,7 +285,9 @@ export async function handleIncomingMessage({
       throw new Error("AI ответ в неверном формате");
     }
 
-    console.log(aiRaw);
+    if (aiMessage.step === "completed" && aiMessage.data.confirmed) {
+      addTicket(chatId, platform, ctx.session, aiMessage);
+    }
 
     await sendMessageToClient(platform, chatId, aiMessage.response);
 

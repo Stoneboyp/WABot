@@ -1,5 +1,5 @@
 // store/ticketStore.ts
-import { SessionData } from "../types";
+import { AIMessage, SessionData } from "../types";
 
 export type Ticket = {
   id: string;
@@ -7,6 +7,7 @@ export type Ticket = {
   platform: string;
   scenario: SessionData["scenario"];
   data: Partial<SessionData>;
+  aiData: AIMessage["data"];
   createdAt: Date;
   confirmed: boolean;
 };
@@ -16,17 +17,20 @@ const tickets: Ticket[] = [];
 export function addTicket(
   chatId: string,
   platform: string,
-  session: SessionData
+  session: SessionData,
+  aiMessage: AIMessage
 ) {
   const ticket: Ticket = {
     id: Date.now().toString(),
     chatId,
     platform,
     scenario: session.scenario!,
+    aiData: aiMessage.data,
     data: { ...session },
     createdAt: new Date(),
     confirmed: !!session.confirmed,
   };
+
   tickets.push(ticket);
 
   // Запись в файл

@@ -7,6 +7,23 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+export interface AIMessage {
+  step: string;
+  response: string;
+  data: {
+    service: string | null;
+    deviceType: string | null;
+    model: string | null;
+    quantity: number | null;
+    problem: string | null;
+    address: string | null;
+    request_id: string | null;
+    confirmed: boolean;
+  };
+  next_question: string | null;
+  [key: string]: any;
+}
+
 export interface SessionData {
   scenario?: "repair" | "cartridge" | "purchase";
   step?: "collecting" | "awaiting_confirmation" | "done";
