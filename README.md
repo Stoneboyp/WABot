@@ -1,4 +1,4 @@
-# WABot - Telegram Bot with AI Consultant
+# WABot - Bot with AI Consultant
 
 ## Project Overview
 
