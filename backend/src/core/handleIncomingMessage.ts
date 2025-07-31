@@ -116,65 +116,6 @@ export async function handleIncomingMessage({
       }
     }
 
-    if (isReadyForConfirmation(ctx.session)) {
-      const scenario = ctx.session.scenario;
-      if (!scenario || !scenarioConfigs[scenario]) {
-        logger.error(
-          `[${platform}:${chatId}] ❌ Неизвестный сценарий: "${scenario}"`
-        );
-        await sendMessageToClient(
-          platform,
-          chatId,
-          "Произошла ошибка — не удалось определить тип заявки."
-        );
-        return;
-      }
-      const scenarioConfig = scenarioConfigs[scenario];
-
-      const confirmText = scenarioConfig.buildConfirmation(ctx.session);
-      ctx.session.step = "awaiting_confirmation";
-
-      await sendMessageToClient(platform, chatId, confirmText);
-      return;
-    }
-
-    if (
-      ctx.session.step === "awaiting_confirmation" &&
-      isConfirmationResponse(text)
-    ) {
-      const scenario = ctx.session.scenario;
-      if (!scenario || !scenarioConfigs[scenario]) {
-        logger.error(
-          `[${platform}:${chatId}] ❌ Неизвестный сценарий при подтверждении: "${scenario}"`
-        );
-        await sendMessageToClient(
-          platform,
-          chatId,
-          "Произошла ошибка при подтверждении заявки."
-        );
-        return;
-      }
-      const scenarioConfig = scenarioConfigs[scenario];
-
-      const confirmMsg =
-        scenarioConfig.buildFinalConfirmation?.(ctx.session) ||
-        "✅ Заявка оформлена. Мы скоро с вами свяжемся.";
-
-      await sendMessageToClient(platform, chatId, confirmMsg);
-
-      ctx.session.confirmed = true;
-      ctx.session.step = "done";
-
-      chat.session = ctx.session;
-
-      logSessionEvent(chatId, platform, {
-        type: "confirmation",
-        content: confirmMsg,
-        timestamp: new Date().toISOString(),
-      });
-
-      return;
-    }
     // 1. Пробуем найти ответ в базе знаний
     const kbAnswer = await searchKnowledgeBase(text);
 
@@ -286,10 +227,32 @@ export async function handleIncomingMessage({
       throw new Error("AI ответ в неверном формате");
     }
     console.log(aiMessage);
+    if (aiMessage.step === "confirmation" && isConfirmationResponse(text)) {
+      const scenario = ctx.session.scenario;
+      if (!scenario || !scenarioConfigs[scenario]) {
+        await sendMessageToClient(
+          platform,
+          chatId,
+          "Ошибка при подтверждении заявки."
+        );
+        return;
+      }
 
-    if (aiMessage.step === "completed" && aiMessage.data.confirmed) {
-      addTicket(chatId, platform, ctx.session, aiMessage);
-      notifyManager(platform, aiMessage);
+      const scenarioConfig = scenarioConfigs[scenario];
+      const confirmMsg =
+        scenarioConfig.buildFinalConfirmation?.(ctx.session) ||
+        "✅ Заявка оформлена. Мы скоро с вами свяжемся.";
+
+      ctx.session.confirmed = true;
+      chat.session = ctx.session;
+
+      await sendMessageToClient(platform, chatId, confirmMsg);
+      logSessionEvent(chatId, platform, {
+        type: "confirmation",
+        content: confirmMsg,
+        timestamp: new Date().toISOString(),
+      });
+      return;
     }
 
     await sendMessageToClient(platform, chatId, aiMessage.response);
