@@ -120,8 +120,8 @@ export async function getAIResponse(
   }
 
   try {
-    const response = await tryOpenAICompletion(openai, "gpt-3.5-turbo");
-
+    const response = await tryOpenAICompletion(openai, "gpt-4o");
+    console.log(" Ответил OpenAI");
     ctx.session.chatHistory.push(
       { role: "user", content: prompt, timestamp: new Date() },
       { role: "assistant", content: response, timestamp: new Date() }
@@ -137,7 +137,6 @@ export async function getAIResponse(
 
     try {
       const response = await tryOpenAICompletion(deepseek, "deepseek-chat");
-
       ctx.session.chatHistory.push(
         { role: "user", content: prompt, timestamp: new Date() },
         { role: "assistant", content: response, timestamp: new Date() }
