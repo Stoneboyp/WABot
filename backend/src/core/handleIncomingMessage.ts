@@ -13,13 +13,8 @@ import {
 import { searchKnowledgeBase } from "../services/knowledge-base";
 import logger from "../core/logger";
 import { logSessionEvent } from "../core/sessionLogger";
-import { isConfirmationResponse } from "../utils/textMatchers";
-import { isReadyForConfirmation } from "../utils/sessionCheckers";
-import { scenarioConfigs } from "../utils/scenarioConfigs";
 import { detectScenario } from "../utils/scenarioDetector";
-import { addTicket } from "../store/ticketStore";
 import { AIMessage } from "../types";
-import { notifyManager } from "../services/notification";
 interface HandleIncomingMessageOptions {
   chatId: string;
   platform: "telegram" | "whatsapp" | "other";
@@ -214,6 +209,7 @@ export async function handleIncomingMessage({
       text,
       `Клиент: ${userName}`
     );
+
     let aiMessage: AIMessage;
     try {
       aiMessage = JSON.parse(
@@ -227,31 +223,18 @@ export async function handleIncomingMessage({
       throw new Error("AI ответ в неверном формате");
     }
     console.log(aiMessage);
-    if (aiMessage.step === "confirmation" && isConfirmationResponse(text)) {
-      const scenario = ctx.session.scenario;
-      if (!scenario || !scenarioConfigs[scenario]) {
-        await sendMessageToClient(
-          platform,
-          chatId,
-          "Ошибка при подтверждении заявки."
-        );
-        return;
-      }
-
-      const scenarioConfig = scenarioConfigs[scenario];
-      const confirmMsg =
-        scenarioConfig.buildFinalConfirmation?.(ctx.session) ||
-        "✅ Заявка оформлена. Мы скоро с вами свяжемся.";
-
+    if (aiMessage.step === "completed") {
       ctx.session.confirmed = true;
       chat.session = ctx.session;
 
-      await sendMessageToClient(platform, chatId, confirmMsg);
+      await sendMessageToClient(platform, chatId, aiMessage.response);
+
       logSessionEvent(chatId, platform, {
         type: "confirmation",
-        content: confirmMsg,
+        content: aiMessage.response,
         timestamp: new Date().toISOString(),
       });
+
       return;
     }
 

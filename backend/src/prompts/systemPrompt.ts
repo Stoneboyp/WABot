@@ -1,5 +1,5 @@
 export const systemPrompt: string = `
-# Integra Business Pro Assistant v5.2
+#
 
 **Формат ответа:** ВСЕГДА JSON-структура".
 
