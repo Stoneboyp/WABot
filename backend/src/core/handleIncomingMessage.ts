@@ -14,7 +14,7 @@ import { searchKnowledgeBase } from "../services/knowledge-base";
 import logger from "../core/logger";
 import { logSessionEvent } from "../core/sessionLogger";
 import { detectScenario } from "../utils/scenarioDetector";
-import { AIMessage } from "../types";
+import { AIMessage, ChatMessage } from "../types";
 import { notifyManager } from "../services/notification";
 interface HandleIncomingMessageOptions {
   chatId: string;
@@ -56,6 +56,67 @@ export async function handleIncomingMessage({
     console.warn(
       `[WARN] Чат ${chatId} не найден в chatStore после saveMessage`
     );
+    return;
+  }
+  // Лимит сообщений от пользователя
+  const MAX_MESSAGES_FROM_USER = 5;
+
+  // Если сессия уже заблокирована — не отвечаем
+  if (chat.session.locked) {
+    logger.info(
+      `[${platform}:${chatId}] 🚫 Заблокирован — сообщение проигнорировано.`
+    );
+    return;
+  }
+
+  const userMessageCount = chat.messages.filter(
+    (msg) => msg.role === "user"
+  ).length;
+
+  if (userMessageCount > MAX_MESSAGES_FROM_USER) {
+    const limitMsg =
+      "Пожалуйста, дождитесь оператора или свяжитесь с нами по телефону";
+
+    const botMessage: ChatMessage = {
+      role: "assistant",
+      content: limitMsg,
+      timestamp: new Date(),
+    };
+
+    chat.messages.push(botMessage);
+    chat.lastMessage = limitMsg;
+    chat.updatedAt = new Date();
+    chat.mode = "operator";
+    chat.notification = true;
+    chat.session.locked = true;
+
+    await sendMessageToClient(platform, chatId, limitMsg);
+
+    broadcastTo(chatId, platform, {
+      type: "new_message",
+      payload: {
+        sender: "bot",
+        content: limitMsg,
+        timestamp: new Date(),
+        lastMessage: limitMsg,
+      },
+    });
+
+    broadcastTo("admin", "admin", {
+      type: "chat_updated",
+      payload: {
+        chatId,
+        platform,
+        lastMessage: limitMsg,
+        updatedAt: new Date(),
+        notification: true,
+      },
+    });
+
+    logger.info(
+      `[${platform}:${chatId}] 🚫 Превышен лимит (${userMessageCount}), включён режим оператора.`
+    );
+
     return;
   }
 

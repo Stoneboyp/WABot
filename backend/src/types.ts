@@ -29,7 +29,8 @@ export interface SessionData {
   scenario?: "repair" | "cartridge" | "purchase";
   step?: "collecting" | "awaiting_confirmation" | "done";
   confirmed?: boolean;
-
+  lastModelUsed?: string;
+  locked?: boolean;
   // Для заправки картриджей
   model?: string;
   count?: number;

@@ -121,7 +121,8 @@ export async function getAIResponse(
 
   try {
     const response = await tryOpenAICompletion(openai, "gpt-4o");
-    console.log(" Ответил OpenAI");
+    console.log("✅ Ответила модель: gpt-4o (OpenAI)");
+    ctx.session.lastModelUsed = "gpt-4o";
     ctx.session.chatHistory.push(
       { role: "user", content: prompt, timestamp: new Date() },
       { role: "assistant", content: response, timestamp: new Date() }
@@ -137,6 +138,8 @@ export async function getAIResponse(
 
     try {
       const response = await tryOpenAICompletion(deepseek, "deepseek-chat");
+      console.log("✅ Ответила модель: deepseek-chat (DeepSeek)");
+      ctx.session.lastModelUsed = "deepseek-chat";
       ctx.session.chatHistory.push(
         { role: "user", content: prompt, timestamp: new Date() },
         { role: "assistant", content: response, timestamp: new Date() }
@@ -152,7 +155,8 @@ export async function getAIResponse(
 
       try {
         const response = await tryGroqCompletion();
-
+        console.log("✅ Ответила модель: llama-3.3-70b-versatile (Groq)");
+        ctx.session.lastModelUsed = "llama-3.3-70b-versatile";
         ctx.session.chatHistory.push(
           { role: "user", content: prompt, timestamp: new Date() },
           { role: "assistant", content: response, timestamp: new Date() }
