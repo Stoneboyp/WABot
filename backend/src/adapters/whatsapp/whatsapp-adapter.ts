@@ -51,7 +51,7 @@ export async function initWhatsAppAdapter() {
             `📥 Входящее WA сообщение: ${userName} (${chatId}): ${msg}`
           );
 
-          if (msg && chatId === allowedChatId) {
+          if (msg && chatId) {
             saveMessage(platform, chatId, userName, {
               role: "user",
               content: msg,
