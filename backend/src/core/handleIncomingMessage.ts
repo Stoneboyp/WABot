@@ -15,6 +15,7 @@ import logger from "../core/logger";
 import { logSessionEvent } from "../core/sessionLogger";
 import { detectScenario } from "../utils/scenarioDetector";
 import { AIMessage } from "../types";
+import { notifyManager } from "../services/notification";
 interface HandleIncomingMessageOptions {
   chatId: string;
   platform: "telegram" | "whatsapp" | "other";
@@ -235,6 +236,8 @@ export async function handleIncomingMessage({
         timestamp: new Date().toISOString(),
       });
 
+      notifyManager(platform, aiMessage);
+
       return;
     }
 
@@ -242,7 +245,6 @@ export async function handleIncomingMessage({
 
     const validated = validateAIResponse(aiMessage.response, kbAnswer);
     const finalResponse = postProcessResponse(validated);
-
     chat.session = ctx.session;
     saveMessage(platform, chatId, "Bot", {
       role: "assistant",
