@@ -59,7 +59,7 @@ export async function handleIncomingMessage({
     return;
   }
   // Лимит сообщений от пользователя
-  const MAX_MESSAGES_FROM_USER = 5;
+  const MAX_MESSAGES_FROM_USER = 25;
 
   // Если сессия уже заблокирована — не отвечаем
   if (chat.session.locked) {
@@ -76,7 +76,6 @@ export async function handleIncomingMessage({
   if (userMessageCount > MAX_MESSAGES_FROM_USER) {
     const limitMsg =
       "Пожалуйста, дождитесь оператора или свяжитесь с нами по телефону";
-
     const botMessage: ChatMessage = {
       role: "assistant",
       content: limitMsg,
