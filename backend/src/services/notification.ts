@@ -7,7 +7,8 @@ dotenv.config();
 
 export async function notifyManager(
   platform: ChatPlatform,
-  aiMessage: AIMessage
+  aiMessage: AIMessage,
+  chatId: string
 ) {
   const MANAGER_CHAT_ID = process.env.TG_MANAGER_ID;
   const WA_MANAGER_NUMBER = process.env.WA_MANAGER_NUMBER;
@@ -34,6 +35,7 @@ export async function notifyManager(
     model && `Модель: ${model}`,
     problem && `Проблема: ${problem}`,
     address && `Адрес: ${address}`,
+    `Чат ID клиента: ${chatId}`,
   ].filter(Boolean);
 
   const text = lines.join("\n");

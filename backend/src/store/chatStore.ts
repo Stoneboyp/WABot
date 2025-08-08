@@ -7,7 +7,6 @@ function makeKey(platform: ChatPlatform, chatId: string) {
 }
 
 const chatStore = new Map<string, ChatEntry>();
-
 export function saveMessage(
   platform: ChatPlatform,
   chatId: string,
@@ -22,6 +21,11 @@ export function saveMessage(
     existing.updatedAt = new Date();
     existing.status = "online";
     existing.lastMessage = message.content;
+
+    // Обновляем userName, если передан и отличается
+    if (userName && userName !== existing.userName) {
+      existing.userName = userName;
+    }
   } else {
     const newChat: ChatEntry = {
       platform,

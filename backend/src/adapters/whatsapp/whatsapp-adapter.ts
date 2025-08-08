@@ -4,6 +4,7 @@ dotenv.config();
 import { handleIncomingMessage } from "../../core/handleIncomingMessage";
 import whatsAppClient from "@green-api/whatsapp-api-client";
 import { saveMessage, getChat, ChatPlatform } from "../../store/chatStore";
+import { fetchWhatsAppHistory } from "../../services/fetchWhatsAppHistory";
 
 const idInstance = process.env.WA_MANAGER_ID_INSTANCE!;
 const apiTokenInstance = process.env.WA_API_TOKEN_INSTANCE!;
@@ -57,9 +58,7 @@ export async function initWhatsAppAdapter() {
               content: msg,
               timestamp: new Date(),
             });
-            const history = getChat(platform, chatId)?.messages || [];
-            console.log(history);
-
+            const history = await fetchWhatsAppHistory(chatId, 10);
             await handleIncomingMessage({
               chatId,
               platform,
