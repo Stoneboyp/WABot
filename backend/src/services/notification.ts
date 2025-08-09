@@ -35,7 +35,7 @@ export async function notifyManager(
     model && `Модель: ${model}`,
     problem && `Проблема: ${problem}`,
     address && `Адрес: ${address}`,
-    `Чат ID клиента: ${chatId}`,
+    `Чат: ${chatId.replace(/\D/g, "")}`,
   ].filter(Boolean);
 
   const text = lines.join("\n");

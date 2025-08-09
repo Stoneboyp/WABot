@@ -32,7 +32,6 @@ export async function handleIncomingMessage({
   history = [],
 }: HandleIncomingMessageOptions): Promise<void> {
   const now = new Date();
-
   // 1. Сохраняем сообщение
   saveMessage(platform, chatId, userName, {
     role: "user",
@@ -161,17 +160,6 @@ export async function handleIncomingMessage({
       session: { chatHistory: history, ...(chat.session || {}) },
     };
 
-    // Попробовать определить сценарий, если он ещё не установлен
-    if (!ctx.session.scenario) {
-      const detected = detectScenario(text);
-      if (detected) {
-        ctx.session.scenario = detected;
-        logger.info(
-          `[${platform}:${chatId}] 🧠 Обнаружен сценарий: ${detected}`
-        );
-      }
-    }
-
     // 1. Пробуем найти ответ в базе знаний
     const kbAnswer = await searchKnowledgeBase(text);
 
@@ -262,7 +250,6 @@ export async function handleIncomingMessage({
 
       return;
     }
-
     // 3. Вызываем AI и применяем защиты
     const filteredHistory = sanitizeHistory(ctx as any, kbAnswer);
     const aiRaw = await getAIResponse(
@@ -270,7 +257,6 @@ export async function handleIncomingMessage({
       text,
       `Клиент: ${userName}`
     );
-
     let aiMessage: AIMessage;
     try {
       aiMessage = JSON.parse(
@@ -287,7 +273,6 @@ export async function handleIncomingMessage({
     if (aiMessage.step === "completed") {
       ctx.session.confirmed = true;
       chat.session = ctx.session;
-
       await sendMessageToClient(platform, chatId, aiMessage.response);
 
       logSessionEvent(chatId, platform, {
@@ -296,11 +281,63 @@ export async function handleIncomingMessage({
         timestamp: new Date().toISOString(),
       });
 
-      notifyManager(platform, aiMessage);
+      notifyManager(platform, aiMessage, chatId);
 
       return;
     }
 
+    if (aiMessage.step === "fallback") {
+      const fallbackMsg =
+        aiMessage.response ||
+        "Спасибо за сообщение! Мы ответим вам, как только освободится оператор.";
+
+      chat.session = ctx.session;
+      chat.mode = "operator";
+      chat.notification = true;
+      chat.lastMessage = fallbackMsg;
+      chat.updatedAt = new Date();
+
+      saveMessage(platform, chatId, "Bot", {
+        role: "assistant",
+        content: fallbackMsg,
+        timestamp: new Date(),
+      });
+
+      await sendMessageToClient(platform, chatId, fallbackMsg);
+
+      broadcastTo(chatId, platform, {
+        type: "new_message",
+        payload: {
+          sender: "bot",
+          content: fallbackMsg,
+          timestamp: new Date(),
+          lastMessage: fallbackMsg,
+        },
+      });
+
+      broadcastTo("admin", "admin", {
+        type: "chat_updated",
+        payload: {
+          chatId,
+          platform,
+          lastMessage: fallbackMsg,
+          updatedAt: new Date(),
+          notification: true,
+        },
+      });
+
+      logSessionEvent(chatId, platform, {
+        type: "fallback_ai",
+        content: fallbackMsg,
+        timestamp: new Date().toISOString(),
+      });
+
+      logger.info(
+        `[${platform}:${chatId}] 🔄 Переключение на оператора (AI fallback)`
+      );
+
+      return;
+    }
     await sendMessageToClient(platform, chatId, aiMessage.response);
 
     const validated = validateAIResponse(aiMessage.response, kbAnswer);
