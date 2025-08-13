@@ -101,7 +101,7 @@ export async function getAIResponse(
     const res = await client.chat.completions.create({
       model,
       messages: openaiMessages,
-      temperature: 0.7,
+      // temperature: 0.7,
     });
     if (res.choices.length === 0) throw new Error("No response from AI");
     return res.choices[0].message?.content ?? "Не удалось получить ответ";
@@ -120,9 +120,9 @@ export async function getAIResponse(
   }
 
   try {
-    const response = await tryOpenAICompletion(openai, "gpt-4o");
-    console.log("✅ Ответила модель: gpt-4o (OpenAI)");
-    ctx.session.lastModelUsed = "gpt-4o";
+    const response = await tryOpenAICompletion(openai, "gpt-5");
+    console.log("✅ Ответила модель: gpt-5 (OpenAI)");
+    ctx.session.lastModelUsed = "gpt-5";
     ctx.session.chatHistory.push(
       { role: "user", content: prompt, timestamp: new Date() },
       { role: "assistant", content: response, timestamp: new Date() }
